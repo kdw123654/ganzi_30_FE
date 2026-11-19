@@ -978,3 +978,25 @@ nav {
 .character-card.is-current {
   cursor: default;
 }
+
+/* ───────── 11/20: WELCOME 글꼴(피그마), 이메일 창 닫기 버튼이 배너와 안 겹치게 ───────── */
+/* Raleway SemiBold를 이 버튼에 쓰는 글자만 남겨 OndoWelcome으로 이름 바꿔 넣음 (OFL, assets/fonts/LICENSE.md) */
+@font-face {
+  font-family: "OndoWelcome";
+  src: url("../assets/fonts/OndoWelcome-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}
+#home .map button,
+.welcome-banner {
+  font-family: "OndoWelcome", "Pretendard", "Malgun Gothic", sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+/* 배너가 창 윗변에 반쯤 걸쳐 있어서, 닫기 버튼과 제목을 배너 아래로 내림 */
+.info-card {
+  padding-top: clamp(58px, 5.6vw, 80px);
+}
+.info-card .close {
+  top: clamp(40px, 4.2vw, 54px);
+}
