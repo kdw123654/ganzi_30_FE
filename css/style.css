@@ -1074,3 +1074,9 @@ body:has(#home:not([hidden])) .site-brand {
     padding: 4px 8px;
   }
 }
+/* 이메일 창 위 배너도 시작 화면 WELCOME 버튼과 같은 맑은 고딕 */
+.welcome-banner {
+  font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
