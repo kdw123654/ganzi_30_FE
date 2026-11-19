@@ -132,10 +132,10 @@
   color: #24412f;
 }
 /* 캐릭터 색감 (BE CHARACTER_COLORS 키와 같음) */
-.tone-warm { filter: hue-rotate(-28deg) saturate(1.35); }
-.tone-forest { filter: hue-rotate(75deg) saturate(1.1); }
-.tone-ocean { filter: hue-rotate(165deg) saturate(1.1); }
-.tone-lavender { filter: hue-rotate(235deg) saturate(0.95); }
+.tone-warm { filter: grayscale(1) sepia(1) hue-rotate(-50deg) saturate(3.2) brightness(0.95); }
+.tone-forest { filter: grayscale(1) sepia(1) hue-rotate(58deg) saturate(1.9) brightness(0.98); }
+.tone-ocean { filter: grayscale(1) sepia(1) hue-rotate(160deg) saturate(2.4) brightness(1.02); }
+.tone-lavender { filter: grayscale(1) sepia(1) hue-rotate(222deg) saturate(2.8) brightness(0.96); }
 .tone-pastel { filter: saturate(0.55) brightness(1.12); }
 .tone-vivid { filter: saturate(1.9) contrast(1.05); }
 .tone-mono { filter: grayscale(1); }
