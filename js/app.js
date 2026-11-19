@@ -577,13 +577,10 @@ byId('onboard').onsubmit = event => {
 };
 
 
+// 이미 로그인한 사람: '환영해요' 화면 없이 바로 섬 선택으로 (캐릭터 수정은 섬 프로필 메뉴에 있음)
 function welcome() {
-  byId('doneAnimal').src = 'assets/characters/' + saved.animal + '.png';
-  byId('doneAnimal').className = ['selected', toneClass(saved.color)].filter(Boolean).join(' ');
-  byId('greeting').textContent = saved.nick + '님, ON-DO에 오신 걸 환영해요!';
-  byId('details').textContent = [saved.job, saved.years].filter(Boolean).join(' · ');
   sessionStorage.setItem('ondo-session', '1');
-  show('done');
+  location.replace('island-select.html');
 }
 byId('shuffle').onclick = recommend;
 byId('nick').oninput = () => byId('nick').setCustomValidity('');
