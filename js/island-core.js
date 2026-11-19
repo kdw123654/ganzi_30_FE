@@ -383,6 +383,8 @@ const clusterPoint = { x: 31, y: 57 };
 const MAX_ZOOM = 2; // 지도 확대는 100~200%: 더 키우면 캐릭터·말풍선이 깨지고 길을 잃기 쉬움
 const revealZoom = 0; // 이웃을 숫자로 묶지 않고 항상 각자 자리에 보여 줌
 const campfirePoint = { x: 50, y: 44 }; // 섬 중앙 광장
+// 섬 온도별 모닥불 그림 (피그마): 차가움·보통은 작은 불, 따뜻함은 중간 불, 뜨거움은 큰 불 + 불씨
+const campfireSize = { cold: "s", mild: "s", warm: "m", hot: "l" };
 // 강·호수·집을 피한 풀밭 자리(%). 글 위치가 없는 이웃은 이 중 한 곳에 선다
 const SPOTS = [
   [12, 27], [25, 25], [36, 20], [40, 29], [55, 25], [63, 29], [45, 8], [55, 10],
@@ -493,7 +495,7 @@ function renderMarkers() {
       html: `
         <button type="button" class="marker campfire level-${islandTemp.level}" data-campfire
           aria-label="섬 온도 ${islandTemp.temperature}도">
-          <span class="campfire-flame" aria-hidden="true">🔥</span>
+          <span class="campfire-flame" aria-hidden="true"><img src="assets/campfire/campfire-${campfireSize[islandTemp.level] || "m"}.png" alt=""></span>
           <span class="campfire-temp">🌡️ ${islandTemp.temperature}°</span>
         </button>`,
     });
