@@ -254,7 +254,7 @@ function worryCard(post, { unread = false } = {}) {
     <button type="button" class="card worry-card" data-post="${post.id}">
       <small class="mode">${escapeText([mode, new Date(post.created_at).toLocaleString("ko-KR")].filter(Boolean).join(" · "))}</small>
       <strong>${unread ? '<i class="unread-dot" aria-label="새 댓글"></i>' : ""}${post.waiting ? '<span class="waiting-badge">답을 기다려요</span>' : ""}${escapeText(post.title)}</strong>
-      <small class="card-author">${escapeText(post.author?.nickname || "떠난 이용자")} ${(post.author?.title?.tier || 0) >= 3 ? titleBadge(post.author.title, { compact: true }) : ""}</small>
+      <small class="card-author">${escapeText(post.author?.nickname || "떠난 이용자")} ${(post.author?.title?.tier || 0) >= 3 ? titleBadge(post.author.title) : ""}</small>
       <small class="card-meta">${escapeText(post.topic)} · 답글 ${Number(post.comment_count) || 0}</small>
     </button>`;
 }
@@ -1156,7 +1156,7 @@ function renderInsights(d) {
       </ul>
     </section>` : ""}
 
-    <p class="keeper-foot">리포트는 매일 아침 8시에 새로 정리돼요. 공개 고민만 모아 셌어요. 글 내용은 리포트에 쓰지 않고, 닮은 정도는 고민을 AI 임베딩으로 바꿔 잰 코사인 유사도예요.</p>`;
+    <p class="keeper-foot">리포트는 매일 아침 8시에 새로 정리돼요. 공개 고민만 모아 셌어요.</p>`;
 }
 
 // 닮은 고민 말풍선을 누르면: 그 묶음에 든 고민 목록
@@ -2619,12 +2619,14 @@ function updateTopicSelection() {
     : "세부 주제를 선택해 주세요.";
   el("topicSelection").classList.toggle("needs-topic", false);
   for (const category of el("categories").querySelectorAll(".category")) {
-    category.classList.toggle(
-      "selected",
-      Array.from(category.querySelectorAll("[data-category-topic]")).some(
-        (button) => button.dataset.categoryTopic === selectedTopic,
-      ),
+    const picked = Array.from(category.querySelectorAll("[data-category-topic]")).some(
+      (button) => button.dataset.categoryTopic === selectedTopic,
     );
+    category.classList.toggle("selected", picked);
+    // 고른 세부 주제가 이 분류 안에 있으면 분류 이름 대신 세부 주제를 보여 줌 (다시 열면 다른 세부 주제로 바꿀 수 있음)
+    const summary = category.querySelector("summary");
+    summary.textContent = picked ? selectedTopic : summary.dataset.group;
+    summary.title = picked ? `${summary.dataset.group} · ${selectedTopic}` : "";
   }
   for (const button of el("categories").querySelectorAll(
     "[data-category-topic]",
@@ -2640,7 +2642,7 @@ function setupCategories() {
   list.innerHTML = Object.entries(topics)
     .map(
       ([group, items]) =>
-        `<details class="category" name="worry-category"><summary>${group}</summary><div class="topic-options">
+        `<details class="category" name="worry-category"><summary data-group="${group}">${group}</summary><div class="topic-options">
       ${items.map((topic) => `<button type="button" data-category-topic="${topic}" aria-pressed="false">${topic}</button>`).join("")}
     </div></details>`,
     )
@@ -2828,6 +2830,7 @@ if (me && authToken()) {
     renderReview();
     reviewTimer = setTimeout(() => checkPost(requestId), delay);
   }
+  const issueLabels = { PERSONAL_INFO: "개인정보·회사명", OFFENSIVE: "거친 표현", CRISIS: "위기 신호" };
   function showReviewResults(showResults) {
     el("suggestionPanel").hidden = showResults;
     el("resultPanel").hidden = !showResults;
@@ -2853,9 +2856,8 @@ if (me && authToken()) {
     const years = pendingDraft.years ? "연차 정보 공개" : "연차 정보 비공개";
     el("draftPreview").innerHTML = `
       <div class="review-chip-row" aria-label="고민 분야">${Object.keys(topics)
-        .map((group) => chip(group, group === selectedGroup))
+        .map((group) => chip(group === selectedGroup ? pendingDraft.topic : group, group === selectedGroup))
         .join("")}</div>
-      <small class="review-topic">${escapeText(pendingDraft.topic)}</small>
       <div class="editor-label"><label for="reviewDraftTitle">제목</label><small>필수 · 40자 이내</small></div>
       <div class="review-field review-field-title"><div class="review-edit"><span id="reviewTitleHighlight" aria-hidden="true"></span><input id="reviewDraftTitle" maxlength="40" required></div><small id="reviewTitleCount"></small></div>
       <small class="review-caption">읽는 사람이 상황을 바로 알 수 있도록, 겪고 있는 일을 한 문장으로 적어주세요.</small>
@@ -2904,6 +2906,40 @@ if (me && authToken()) {
       }
     }
     return parts;
+  }
+
+  // 개인정보 말고 다른 문제(거친 표현 등)는 12간지 사자가 나와서 고칠 방향을 알려 줌. 위기 신호는 캐릭터 없이 상담 안내만
+  function showWordGuide(issues) {
+    const rough = issues.filter((issue) => issue.type && !["PERSONAL_INFO", "CRISIS"].includes(issue.type));
+    if (!rough.length) return;
+    const first = rough[0];
+    el("reviewResults").insertAdjacentHTML(
+      "afterbegin",
+      `<div class="guard-card lion-guide" role="alert">
+        <img src="${img(CHARACTER_KEYS.indexOf("lion"))}" alt="12간지 다정한 사자">
+        <div>
+          <strong>12간지 다정한 사자</strong>
+          <p>앗, ${rough.length > 1 ? `${rough.length}곳의 표현이` : "이 표현이"} 읽는 이웃에게 상처가 될 수 있어요.</p>
+          <p class="guard-preview">${rough.map((issue) => `<b>“${escapeText(issue.text || "문제 표현")}”</b>`).join(" · ")}<br>${escapeText(first.guide || serverReview?.suggestion || "감정을 순화한 표현으로 바꿔 보세요.")}</p>
+          <div class="row">
+            <button type="button" id="removeRoughWords">이 표현 지우고 고쳐 쓰기</button>
+            <button type="button" class="soft" id="openSuggestions">수정 제안 보기</button>
+          </div>
+        </div>
+      </div>`,
+    );
+    el("removeRoughWords").onclick = () => {
+      const fixed = maskDraft(rough, () => "");
+      pendingDraft.title = fixed.title.trim() || pendingDraft.title;
+      pendingDraft.body = fixed.body.replace(/[ \t]{2,}/g, " ").trim();
+      el("reviewDraftTitle").value = pendingDraft.title;
+      el("reviewDraftBody").value = pendingDraft.body;
+      schedulePostCheck();
+      renderReview();
+      el("reviewDraftBody").focus();
+      toast("사자가 거친 표현을 지웠어요. 마음을 다른 말로 적어 보세요.");
+    };
+    el("openSuggestions").onclick = () => showReviewResults(false);
   }
 
   function showSecurityGuard(issues) {
@@ -3031,7 +3067,7 @@ if (me && authToken()) {
       el("reviewResults").innerHTML = `<p class="review-note">${escapeText(reviewError)}</p>`;
     } else if (serverReview) {
       const issueRows = issues.map((issue) => `<div class="review-result check-row ${blocked ? "pending" : ""}">
-        <div class="between"><strong><span class="check-icon" aria-hidden="true">${blocked ? "!" : "✓"}</span>${escapeText(issue.type || "문제 표현")}</strong><small class="review-badge ${blocked ? "required" : ""}">${blocked ? "수정 필요" : "안내"}</small></div>
+        <div class="between"><strong><span class="check-icon" aria-hidden="true">${blocked ? "!" : "✓"}</span>${escapeText(issueLabels[issue.type] || issue.type || "문제 표현")}</strong><small class="review-badge ${blocked ? "required" : ""}">${blocked ? "수정 필요" : "안내"}</small></div>
         <small class="check-excerpt">${escapeText(issue.text || "문제 구절 위치를 찾지 못했어요")}</small>
         ${issue.guide ? `<p>${escapeText(issue.guide)}</p>` : ""}
       </div>`).join("");
@@ -3051,6 +3087,7 @@ if (me && authToken()) {
         body.focus();
         body.setSelectionRange(body.value.length, body.value.length);
       });
+      showWordGuide(issues);
       showSecurityGuard(issues);
     } else {
       el("reviewResults").innerHTML = `<p class="review-note">${pendingDraft.private ? "나만보기 글은 검사하지 않아요." : "점검 결과가 없어요."}</p>`;
