@@ -1063,7 +1063,6 @@ body:has(#home:not([hidden])) .site-brand {
   transform: translate(-50%, calc(50% - 2px));
   box-shadow: 0 10px 22px rgba(36, 60, 52, 0.28);
 }
-/* 모바일 화면 대응 */
 @media (max-width: 680px) {
   #home .map button {
     width: 62%;
@@ -1074,9 +1073,65 @@ body:has(#home:not([hidden])) .site-brand {
     padding: 4px 8px;
   }
 }
-/* 이메일 창 위 배너도 시작 화면 WELCOME 버튼과 같은 맑은 고딕 */
+#info {
+  width: min(610px, calc(100% - 26px));
+  padding: 36px 0 0;
+  border-radius: 0;
+  background: transparent;
+  overscroll-behavior: contain;
+}
+#info::backdrop {
+  background: rgba(48, 54, 48, 0.45);
+}
+.info-card {
+  position: relative;
+  background: #ffffff;
+  border-radius: 21px;
+  padding: clamp(52px, 4.8vw, 66px) clamp(20px, 2.2vw, 32px) clamp(24px, 3.1vw, 44px);
+}
 .welcome-banner {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(56%, 340px);
+  min-width: 230px;
+  min-height: 54px;
+  padding: 14px 28px;
+  border-radius: 999px;
+  background: #243c34;
+  color: #fbfaf5;
   font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  font-size: clamp(14px, 1.3vw, 17px);
   font-weight: 600;
-  letter-spacing: 0.02em;
+  line-height: 1.2;
+  letter-spacing: 0.03em;
+  text-align: center;
+  white-space: nowrap;
+  box-shadow: 0 3px 10px rgba(24, 48, 40, 0.14);
+}
+.info-card .close {
+  position: absolute;
+  top: 16px;
+  right: clamp(15px, 1.8vw, 24px);
+  z-index: 3;
+}
+@media (max-width: 680px) {
+  #info {
+    padding-top: 30px;
+  }
+  .info-card {
+    padding-top: 46px;
+  }
+  .welcome-banner {
+    width: min(68%, 270px);
+    min-width: 190px;
+    min-height: 46px;
+    padding: 11px 18px;
+    font-size: 14px;
+  }
 }
