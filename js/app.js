@@ -8,6 +8,7 @@ const adjectives = [
 ];
 const nicknameHistory = new Map();
 let animal = 2, verified = false, draft = {};
+let pickedColor = 'original'; // 팔레트에서 고른 캐릭터 색감 (BE CHARACTER_COLORS 키)
 let saved = loadProfile();
 // 'login' = 이메일로 시작하기 화면, 'signup' = 처음 온 사람의 직무·동의 화면 (이메일 인증은 이미 끝난 상태)
 function showAuth(mode) {
@@ -84,7 +85,7 @@ function select(index, refreshNick = true) {
       iconSlot.append(badge);
     }
     const animalImage = new Image();
-    animalImage.className = 'character-image';
+    animalImage.className = ['character-image', toneClass(pickedColor)].filter(Boolean).join(' ');
     animalImage.src = 'assets/characters/' + choice + '.png';
     animalImage.alt = '';
     const base = document.createElement('span');
@@ -97,11 +98,9 @@ function select(index, refreshNick = true) {
     cards.append(card);
   }
   byId('animalName').textContent = names[animal];
-  // 12간지 × 위로 성향: 이 캐릭터로 댓글을 달면 붙는 칭호
-  const persona = personaOf(CHARACTER_KEYS[animal]);
-  byId('animalPersona').textContent = persona
-    ? `${persona.icon} ${persona.label} · 댓글에 이 칭호가 함께 보여요`
-    : '';
+  // 칭호(12간지 × 위로 성향) 안내는 기획 확정 전이라 아직 숨김
+  byId('animalPersona').hidden = true;
+  renderPalette();
   if (refreshNick) recommend();
 }
 byId('previous').onclick = () => select(animal - 1);
@@ -113,6 +112,40 @@ byId('animals').onkeydown = event => {
   select(animal + offset);
   byId('cards').children[1].focus();
 };
+// 마우스 휠(트랙패드 가로 스크롤 포함)로도 넘기기. 한 번 굴릴 때 한 칸만 넘어가게 잠깐 쉬었다가 받음
+let wheelLock = 0;
+byId('animals').addEventListener('wheel', event => {
+  const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+  if (Math.abs(delta) < 4) return;
+  event.preventDefault(); // 고르는 동안 화면이 위아래로 스크롤되지 않게
+  const now = Date.now();
+  if (now < wheelLock) return;
+  wheelLock = now + 280;
+  select(animal + (delta > 0 ? 1 : -1), true);
+}, {passive:false});
+
+// 팔레트: 누르면 색감 8가지가 펼쳐지고, 고르면 캐릭터 색이 바로 바뀜 (가입·수정 때 함께 저장)
+function renderPalette() {
+  const box = byId('paletteOptions');
+  if (!box) return;
+  box.innerHTML = CHARACTER_COLORS.map(([key, label]) => `
+    <button type="button" data-color="${key}" aria-pressed="${key === pickedColor}" title="${label}">
+      <img class="${toneClass(key)}" src="assets/characters/${animal}.png" alt="">
+      <span>${label}</span>
+    </button>`).join('');
+}
+byId('paletteToggle').onclick = () => {
+  const box = byId('paletteOptions');
+  box.hidden = !box.hidden;
+  byId('paletteToggle').setAttribute('aria-expanded', String(!box.hidden));
+};
+byId('paletteOptions').onclick = event => {
+  const button = event.target.closest('[data-color]');
+  if (!button) return;
+  pickedColor = button.dataset.color;
+  select(animal, false);
+};
+
 let swipeStart;
 byId('cards').addEventListener('touchstart', event => {
   swipeStart = event.changedTouches[0].clientX;
@@ -534,6 +567,7 @@ byId('onboard').onsubmit = event => {
   };
 
   byId('info').close();
+  pickedColor = 'original';
   select(2);
   show('choose');
 };
@@ -541,6 +575,7 @@ byId('onboard').onsubmit = event => {
 
 function welcome() {
   byId('doneAnimal').src = 'assets/characters/' + saved.animal + '.png';
+  byId('doneAnimal').className = ['selected', toneClass(saved.color)].filter(Boolean).join(' ');
   byId('greeting').textContent = saved.nick + '님, ON-DO에 오신 걸 환영해요!';
   byId('details').textContent = [saved.job, saved.years].filter(Boolean).join(' · ');
   sessionStorage.setItem('ondo-session', '1');
@@ -563,9 +598,9 @@ byId('profile').onsubmit = async event => {
     try {
       const updated = await api('/users/me', {
         method: 'PATCH',
-        body: { character: CHARACTER_KEYS[animal], nickname }
+        body: { character: CHARACTER_KEYS[animal], nickname, color: pickedColor }
       });
-      saved = { ...saved, nick: updated.nickname, animal: CHARACTER_KEYS.indexOf(updated.character) };
+      saved = { ...saved, nick: updated.nickname, animal: CHARACTER_KEYS.indexOf(updated.character), color: updated.color || pickedColor };
       saveProfile(saved);
       welcome();
     } catch (error) {
@@ -592,7 +627,8 @@ byId('profile').onsubmit = async event => {
         character: CHARACTER_KEYS[animal],
         nickname,
         agree_privacy: draft.agree_privacy,
-        remember: Boolean(draft.remember)
+        remember: Boolean(draft.remember),
+        color: pickedColor
       }
     });
 
@@ -617,6 +653,7 @@ byId('profile').onsubmit = async event => {
 };
 byId('edit').onclick = () => {
   draft = {email:saved.email, job:saved.job, years:saved.years};
+  pickedColor = saved.color || 'original';
   select(saved.animal, false);
   byId('nick').value = saved.nick;
   show('choose');

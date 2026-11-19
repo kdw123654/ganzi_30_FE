@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://ondo-api.onrender.com; base-uri 'self'; form-action 'self'; object-src 'none'">
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ON-DO</title>
-<link rel="stylesheet" href="css/style.css?v=20261119-5">
+<link rel="stylesheet" href="css/style.css?v=20261119-6">
 </head>
 <body>
 <header><nav><span class="site-brand">ON-DO</span><button id="account" class="plain" hidden>로그아웃</button></nav></header>
@@ -33,7 +33,12 @@
 <button type="button" class="arrow next" id="next" aria-label="다음 캐릭터">›</button>
 </div>
 <strong id="animalName" class="animal-name" aria-live="polite"></strong>
-<p id="animalPersona" class="animal-persona"></p>
+<p id="animalPersona" class="animal-persona" hidden></p>
+<div class="color-palette">
+<button type="button" id="paletteToggle" class="palette-toggle" aria-expanded="false" aria-controls="paletteOptions"><span class="palette-icon" aria-hidden="true"></span>색감 고르기</button>
+<div id="paletteOptions" class="palette-options" role="group" aria-label="캐릭터 색감" hidden></div>
+</div>
+<p class="wheel-hint">마우스 휠이나 ‹ › 로 넘겨 보세요</p>
 </div>
 <form id="profile" class="nickname">
 <label for="nick" class="visually-hidden">익명 닉네임</label>
@@ -139,6 +144,6 @@
 </div>
 </dialog>
 <script src="js/api.js?v=20261119-4"></script>
-<script src="js/app.js?v=20261119-6"></script>
+<script src="js/app.js?v=20261119-7"></script>
 </body>
 </html>

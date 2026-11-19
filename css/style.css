@@ -828,3 +828,87 @@ nav {
     animation: none;
   }
 }
+
+/* ───────── 가입 화면 색감 팔레트 (BE CHARACTER_COLORS 키와 같음) ───────── */
+.tone-warm { filter: hue-rotate(-28deg) saturate(1.35); }
+.tone-forest { filter: hue-rotate(75deg) saturate(1.1); }
+.tone-ocean { filter: hue-rotate(165deg) saturate(1.1); }
+.tone-lavender { filter: hue-rotate(235deg) saturate(0.95); }
+.tone-pastel { filter: saturate(0.55) brightness(1.12); }
+.tone-vivid { filter: saturate(1.9) contrast(1.05); }
+.tone-mono { filter: grayscale(1); }
+.character-image { transition: filter 0.25s ease; }
+
+.stage .color-palette {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+.palette-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 6px 16px;
+  border: 1px solid #d9dfcf;
+  border-radius: 999px;
+  background: #fffdf7;
+  color: #2c4436;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.palette-toggle[aria-expanded="true"] {
+  background: #2f5d47;
+  border-color: #2f5d47;
+  color: #fff;
+}
+.palette-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: conic-gradient(#e8633a, #f0b35a, #7fb38a, #5d9bd1, #b78cf0, #e8633a);
+}
+.palette-options {
+  display: grid;
+  grid-template-columns: repeat(4, 76px);
+  gap: 8px;
+  padding: 10px;
+  border-radius: 16px;
+  background: rgba(255, 253, 247, 0.92);
+  box-shadow: 0 6px 18px rgba(36, 60, 52, 0.12);
+}
+.palette-options[hidden] { display: none; }
+.palette-options button {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 6px 4px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: none;
+  color: #2c4436;
+  font-size: 12px;
+  cursor: pointer;
+}
+.palette-options button[aria-pressed="true"] {
+  border-color: #2f5d47;
+  background: #eef4ea;
+  font-weight: 700;
+}
+.palette-options img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+.wheel-hint {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #6c7a70;
+}
+@media (max-width: 690px) {
+  .palette-options { grid-template-columns: repeat(4, 64px); gap: 4px; }
+  .palette-options img { width: 36px; height: 36px; }
+  .wheel-hint { display: none; }
+}
