@@ -2469,7 +2469,42 @@ body {
 
 /* 고민 상세: 넓게, 본문과 댓글만. 본문과 댓글 사이 구분선, 댓글은 줄로 나눠 간결하게 */
 #detail {
-  width: min(880px, calc(100% - 32px));
+  width: min(1040px, calc(100% - 32px));
+  min-height: min(780px, calc(100dvh - 28px));
+}
+/* 세로로 늘어난 만큼 카드가 채우고, 위로 남기기 칸은 맨 아래에 붙게 */
+#detail[open] {
+  display: flex;
+  flex-direction: column;
+}
+#detail[open] #detailBody,
+#detailBody .talk-card,
+#detailBody .talk-replies {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+}
+#detailBody .talk-replies #replyForm {
+  margin-top: auto;
+}
+#detailBody .post-author .detail-avatar {
+  width: 40px;
+  height: 40px;
+}
+#detailBody .post-author .author-text {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+#detailBody .post-author .author-line,
+#detailBody .post-author .author-sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+#detailBody .post-author strong {
+  font-size: 15px;
 }
 #detailBody .talk-card {
   border-radius: 18px;

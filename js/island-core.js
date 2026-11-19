@@ -1644,10 +1644,17 @@ async function showPost(id, open = true) {
       <article class="post-main" aria-label="작성자의 고민">
         <div class="row post-author">
           <img class="detail-avatar ${toneClass(author?.color)}" src="${img(animal)}" alt="">
-          <strong>${escapeText(nickname)}${post.is_mine ? ` <span class="me-tag">나</span>` : ""}</strong>
-          ${author?.job ? `<span class="job-chip">${escapeText(author.job)}</span>` : ""}
-          ${post.years ? `<small>${escapeText(post.years)}</small>` : ""}
-          <span class="badge-row">${titleBadge(author?.title)}</span>
+          <!-- 첫 줄: 닉네임 + 칭호 / 둘째 줄: 직무 · 연차 -->
+          <div class="author-text">
+            <span class="author-line">
+              <strong>${escapeText(nickname)}${post.is_mine ? ` <span class="me-tag">나</span>` : ""}</strong>
+              <span class="badge-row">${titleBadge(author?.title)}</span>
+            </span>
+            ${author?.job || post.years ? `<span class="author-sub">
+              ${author?.job ? `<span class="job-chip">${escapeText(author.job)}</span>` : ""}
+              ${post.years ? `<small>${escapeText(post.years)}</small>` : ""}
+            </span>` : ""}
+          </div>
         </div>
         <h2 class="detail-title">${escapeText(post.title)}</h2>
         <p class="post-text">${escapeText(post.content)}</p>
