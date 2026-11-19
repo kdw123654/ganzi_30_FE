@@ -602,7 +602,10 @@ byId('profile').onsubmit = async event => {
       });
       saved = { ...saved, nick: updated.nickname, animal: CHARACTER_KEYS.indexOf(updated.character), color: updated.color || pickedColor };
       saveProfile(saved);
-      welcome();
+      const back = editReturnUrl();
+      sessionStorage.removeItem(EDIT_RETURN_KEY);
+      if (back) location.href = back; // 섬에서 왔으면 그 섬으로 바로 돌아감
+      else welcome();
     } catch (error) {
       alert(error.message);
     } finally {
@@ -651,12 +654,25 @@ byId('profile').onsubmit = async event => {
     submit.textContent = '입력 완료';
   }
 };
-byId('edit').onclick = () => {
+// 섬에서 '캐릭터 수정'으로 들어오면 돌아갈 섬 주소가 남아 있음. 다른 사이트로 튀지 않게 같은 폴더의 .html만 허용
+const EDIT_RETURN_KEY = 'ondo-edit-return';
+function editReturnUrl() {
+  const back = sessionStorage.getItem(EDIT_RETURN_KEY) || '';
+  return /^[\w-]+\.html(\?[\w=&%-]*)?$/.test(back) ? back : '';
+}
+function startEdit() {
   draft = {email:saved.email, job:saved.job, years:saved.years};
   pickedColor = saved.color || 'original';
   select(saved.animal, false);
   byId('nick').value = saved.nick;
+  byId('editCancel').hidden = !editReturnUrl();
   show('choose');
+}
+byId('edit').onclick = startEdit;
+byId('editCancel').onclick = () => {
+  const back = editReturnUrl();
+  sessionStorage.removeItem(EDIT_RETURN_KEY);
+  location.href = back || 'island-select.html';
 };
 byId('account').onclick = logout;
 
@@ -687,4 +703,7 @@ byId('demoLogin').onclick = async () => {
     });
 })();
 
-if (saved && authToken()) welcome();
+if (saved && authToken()) {
+  if (location.hash === '#edit-character') startEdit();
+  else welcome();
+}

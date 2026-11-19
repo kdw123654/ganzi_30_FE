@@ -2293,7 +2293,11 @@ const characterButton = document.createElement("button");
 characterButton.type = "button";
 characterButton.className = "link-btn quiet";
 characterButton.textContent = "캐릭터 수정";
-characterButton.onclick = openCharacterSettings;
+// 가입할 때 쓰던 캐릭터 고르기 화면으로 보냄. 저장하면 지금 보던 섬으로 돌아오게 주소를 기억해 둠
+characterButton.onclick = () => {
+  sessionStorage.setItem("ondo-edit-return", location.pathname.split("/").pop() + location.search);
+  location.href = "index.html#edit-character";
+};
 
 // 아래 줄: 왼쪽에 작은 글자 링크(캐릭터 수정 · 차단한 이용자), 오른쪽 끝에 로그아웃
 const foot = document.createElement("div");

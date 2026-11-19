@@ -912,3 +912,23 @@ nav {
   .palette-options img { width: 36px; height: 36px; }
   .wheel-hint { display: none; }
 }
+
+/* 섬에서 캐릭터 수정하러 왔을 때: 저장 안 하고 돌아가기 */
+#choose .edit-cancel {
+  justify-self: start;
+  align-self: start;
+  margin-bottom: 8px;
+  padding: 6px 4px;
+  border: 0;
+  background: none;
+  color: #4d6357;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+#choose .edit-cancel:hover {
+  text-decoration: underline;
+}
+#choose .edit-cancel[hidden] {
+  display: none;
+}
