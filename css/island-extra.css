@@ -2569,10 +2569,17 @@ body {
   min-height: 36px;
 }
 
-/* 지도 캐릭터 전반적으로 조금 작게 */
-.marker img {
-  width: 40px;
+/* 지도 캐릭터 전반적으로 작게 (11/20: 40px → 27px, 2/3) */
+.marker img,
+.marker .walker img,
+.player-marker > img {
+  width: 27px;
   height: auto;
+}
+/* 섬지기는 캐릭터보다 눈에 띄게 (52px → 72px) */
+.map .keeper .keeper-art {
+  width: 72px;
+  height: 72px;
 }
 
 /* ───────── 11/20 기획 피드백: AI 점검 결과 (피그마 AiSuggestionCard) ───────── */
