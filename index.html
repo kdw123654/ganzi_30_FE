@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://ondo-api.onrender.com; base-uri 'self'; form-action 'self'; object-src 'none'">
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ON-DO</title>
-<link rel="stylesheet" href="css/style.css?v=20261120-1">
+<link rel="stylesheet" href="css/style.css?v=20261120-2">
 </head>
 <body>
 <header><nav><span class="site-brand">ON-DO</span><button id="account" class="plain" hidden>로그아웃</button></nav></header>
@@ -14,11 +14,20 @@
 <h1>회사에서는 못 했던 말, 여기서는 괜찮아요.</h1>
 <p>익명으로 고민을 나누고 해결해 보아요.</p>
 <div class="map">
-<img class="welcome-land" src="assets/welcome/welcome-map.png" alt="숲과 강이 어우러진 ON-DO 섬">
-<div class="welcome-marker" style="--x:48.4%;--y:39%" aria-hidden="true"><img src="assets/welcome/welcome-heart.png" alt=""><img src="assets/characters/0.png" alt=""></div>
-<div class="welcome-marker" style="--x:30%;--y:67%" aria-hidden="true"><img src="assets/welcome/welcome-heart.png" alt=""><img src="assets/characters/0.png" alt=""></div>
-<div class="welcome-marker" style="--x:88%;--y:72%" aria-hidden="true"><img src="assets/welcome/welcome-heart.png" alt=""><img src="assets/characters/0.png" alt=""></div>
-<button id="start" aria-label="ON-DO 시작하기">WELCOME TO ON-DO</button>
+  <img class="welcome-land" src="assets/welcome/welcome-map.png" alt="숲과 강이 어우러진 ON-DO 섬">
+  <div class="welcome-marker" style="--x:50%;--y:41%" aria-hidden="true">
+    <span class="welcome-bubble">오늘 첫 출근인데 떨려요.</span>
+    <img class="welcome-char" src="assets/characters/0.png" alt="">
+  </div>
+  <div class="welcome-marker" style="--x:22.5%;--y:55%" aria-hidden="true">
+    <span class="welcome-bubble is-short">첫 시안 피드백이 계속 마음에 남아요.</span>
+    <img class="welcome-char" src="assets/characters/0.png" alt="">
+  </div>
+  <div class="welcome-marker" style="--x:68%;--y:82%" aria-hidden="true">
+    <span class="welcome-bubble">팀장님한테 꾸증을 들었어요...</span>
+    <img class="welcome-char" src="assets/characters/0.png" alt="">
+  </div>
+  <button id="start" aria-label="ON-DO 시작하기">WELCOME TO ON-DO</button>
 </div>
 <p id="wakeStatus" class="wake-status" aria-live="polite" hidden>서버를 깨우는 중이에요…</p>
 </section>

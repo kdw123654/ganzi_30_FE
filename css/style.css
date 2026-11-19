@@ -460,21 +460,51 @@ main:has(#home:not([hidden])) {
   left: var(--x);
   top: var(--y);
   transform: translate(-50%, -50%);
-  width: 8.6%;
-  display: grid;
-  justify-items: center;
+  width: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
   pointer-events: none;
+  z-index: 2;
 }
-#home .welcome-marker img {
+.welcome-bubble {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #253f35;
+  font-size: clamp(9px, 0.78vw, 11px);
+  font-weight: 700;
+  line-height: 1.25;
+  white-space: nowrap;
+  box-shadow: 0 3px 10px rgba(24, 54, 43, 0.16);
+}
+/* 말풍선 앞 작은 점(●) */
+.welcome-bubble::before {
+  content: "";
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3d5249;
+}
+.welcome-bubble.is-short {
+  max-width: clamp(92px, 9.5vw, 125px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#home .welcome-marker .welcome-char {
+  width: clamp(28px, 3.6vw, 46px);
+  height: auto;
   min-height: 0;
-  width: 100%;
+  margin-top: 0;
   border-radius: 0;
   object-fit: contain;
-}
-#home .welcome-marker img + img {
-  width: 52%;
-  margin-top: -19%;
-  position: relative;
+  filter: drop-shadow(0 3px 4px rgba(24, 54, 43, 0.22));
 }
 #home .map button,
 .welcome-banner {
@@ -670,13 +700,14 @@ main:has(#home:not([hidden])) {
 nav {
   position: relative;
 }
-.site-brand {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: clamp(22px, 2.2vw, 30px);
-  font-weight: 900;
-  letter-spacing: 0.08em;
+body:has(#home:not([hidden])) .site-brand {
+  position: static;
+  left: auto;
+  transform: none;
+  font-size: clamp(18px, 1.5vw, 22px);
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: #3d6656;
 }
 #account {
   margin-left: auto;
@@ -999,4 +1030,47 @@ nav {
 }
 .info-card .close {
   top: clamp(40px, 4.2vw, 54px);
+}
+#home .map {
+  position: relative;
+  display: block;
+  margin: clamp(22px, 2.6vw, 34px) 0 54px;
+}
+#home .map button {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translate(-50%, 50%);
+  width: min(39%, 320px);
+  min-width: 210px;
+  padding: clamp(11px, 1.1vw, 15px) 24px;
+  border-radius: 999px;
+  background: #243c34;
+  color: #fbfaf5;
+  font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  font-size: clamp(13px, 1.15vw, 16px);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  white-space: nowrap;
+  box-shadow: 0 6px 16px rgba(36, 60, 52, 0.22);
+  cursor: pointer;
+  z-index: 3;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+#home .map button:hover,
+#home .map button:focus-visible {
+  transform: translate(-50%, calc(50% - 2px));
+  box-shadow: 0 10px 22px rgba(36, 60, 52, 0.28);
+}
+/* 모바일 화면 대응 */
+@media (max-width: 680px) {
+  #home .map button {
+    width: 62%;
+    min-width: 190px;
+  }
+  .welcome-bubble {
+    font-size: 9px;
+    padding: 4px 8px;
+  }
 }
