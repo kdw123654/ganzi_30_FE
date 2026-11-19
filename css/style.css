@@ -759,3 +759,72 @@ nav {
   color: #24594f;
   font-weight: 700;
 }
+
+/* ───────── 11/19 기획 피드백: 시작 화면 ───────── */
+@font-face {
+  font-family: "Hakgyoansim Dunggeunmiso";
+  src: url("../assets/fonts/HakgyoansimDunggeunmiso-B.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+/* WELCOME 버튼은 지도(길) 위에 겹치지 않게 지도 아래로. 로그인 창 위 배너와 같은 크기·글꼴(둥근미소 44px) */
+#home .map {
+  display: grid;
+  justify-items: center;
+  gap: clamp(18px, 2.4vw, 30px);
+  margin-bottom: 24px;
+}
+#home .map button,
+.welcome-banner {
+  font-family: "Hakgyoansim Dunggeunmiso", "Malgun Gothic", sans-serif;
+  font-size: clamp(22px, 3.1vw, 44px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0;
+  width: min(500px, 86%);
+  padding: clamp(10px, 1.1vw, 16px) 18px;
+  white-space: nowrap;
+}
+#home .map button {
+  position: static;
+  transform: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+#home .map button:hover,
+#home .map button:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(36, 60, 52, 0.25);
+}
+.welcome-banner {
+  width: min(500px, 86%);
+  font-size: clamp(20px, 3.1vw, 44px);
+}
+/* 로그인 창은 아래에서 자연스럽게 떠오르게 (피그마 프로토타입) */
+#info[open] {
+  animation: info-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+#info[open]::backdrop {
+  animation: info-fade 0.5s ease;
+}
+@keyframes info-rise {
+  from {
+    opacity: 0;
+    transform: translateY(70px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes info-fade {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #info[open],
+  #info[open]::backdrop {
+    animation: none;
+  }
+}

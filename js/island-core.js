@@ -163,8 +163,9 @@ const repliesFor = (p) => [
 const find = (id) => [...own(), ...samples].find((p) => p.id === id);
 const opt = (text, value = text) => new Option(text, value);
 let comfortFilter = "";
+let categoryFilter = ""; // 고민 주제(대분류) 필터
 let waitingOnly = false; // "답을 기다리는 고민"만 보기
-const activeFilters = () => searchText || comfortFilter || waitingOnly;
+const activeFilters = () => searchText || comfortFilter || categoryFilter || waitingOnly;
 const tokenise = (text) => text.toLowerCase().match(/[\p{L}\p{N}]{2,}/gu) || [];
 let selectedTopic = "";
 let zoom = 1,
@@ -245,6 +246,19 @@ function renderTheme() {
 
 let feedRequestId = 0;
 
+// 고민 카드 한 장: 위로 방식 · 날짜 / (답을 기다려요) 제목 / 닉네임 / 주제 · 답글 수
+function worryCard(post, { unread = false } = {}) {
+  const way = COMFORT_KEYS.indexOf(post.comfort_type);
+  const mode = post.visibility === "private" ? "나만보기" : ways[way] || "";
+  return `
+    <button type="button" class="card worry-card" data-post="${post.id}">
+      <small class="mode">${escapeText([mode, new Date(post.created_at).toLocaleString("ko-KR")].filter(Boolean).join(" · "))}</small>
+      <strong>${unread ? '<i class="unread-dot" aria-label="새 댓글"></i>' : ""}${post.waiting ? '<span class="waiting-badge">답을 기다려요</span>' : ""}${escapeText(post.title)}</strong>
+      <small class="card-author">${escapeText(post.author?.nickname || "떠난 이용자")} ${(post.author?.title?.tier || 0) >= 3 ? titleBadge(post.author.title, { compact: true }) : ""}</small>
+      <small class="card-meta">${escapeText(post.topic)} · 답글 ${Number(post.comment_count) || 0}</small>
+    </button>`;
+}
+
 async function renderFeed() {
   const requestId = ++feedRequestId;
   loadTemperature();
@@ -284,6 +298,7 @@ async function renderFeed() {
       const params = new URLSearchParams({ limit: "50" });
 
       if (waitingOnly) params.set("waiting", "true");
+      if (categoryFilter) params.set("category", categoryFilter);
 
       if (comfortFilter !== "") {
         params.set(
@@ -307,6 +322,10 @@ async function renderFeed() {
     }
 
     if (query && waitingOnly) posts = posts.filter(post => post.waiting);
+    if (query && categoryFilter) {
+      const inCategory = new Set(topics[categoryFilter] || []);
+      posts = posts.filter(post => inCategory.has(post.topic));
+    }
 
     recentWorryIds = new Set(posts.slice(0, 3).map(post => post.id));
 
@@ -346,23 +365,7 @@ async function renderFeed() {
       return;
     }
 
-    el("feed").innerHTML = posts.map(post => {
-      const way = COMFORT_KEYS.indexOf(post.comfort_type);
-
-      return `
-        <button class="card" data-post="${post.id}">
-          <small class="mode">
-            ${escapeText(ways[way] || "")} ·
-            ${escapeText(new Date(post.created_at).toLocaleString("ko-KR"))}
-          </small>
-          <strong>${post.waiting ? '<span class="waiting-badge">답을 기다려요</span>' : ""}${escapeText(post.title)}</strong>
-          <small>${escapeText(post.author?.nickname || "떠난 이용자")} ${(post.author?.title?.tier || 0) >= 3 ? titleBadge(post.author.title, { compact: true }) : ""}</small>
-          <small>
-            ${escapeText(post.topic)} · 답글 ${post.comment_count}
-          </small>
-        </button>
-      `;
-    }).join("") || (
+    el("feed").innerHTML = posts.map(post => worryCard(post)).join("") || (
       activeFilters()
         ? "<p>조건에 맞는 고민이 없어요.</p>"
         : "<p>아직 올라온 고민이 없어요.</p>"
@@ -438,12 +441,13 @@ function updateIslandCounts() {
   document.querySelectorAll(".island-counts").forEach(element => {
     // 항목마다 span으로 나눠, 좁은 화면에서는 항목 단위로 줄을 바꾼다 (말줄임으로 잘리지 않게)
     const items = [
-      `지도에 표시된 이웃 ${Number(serverNeighbors.length)}명`,
-      online ? `지금 접속 ${Number(online) + 1}명` : "",
-      footprintVisitors ? `오늘 다녀간 이웃 ${Number(footprintVisitors)}명` : "",
-    ].filter(Boolean);
+      `총 이웃 ${Number(serverNeighbors.length)}명`,
+      `오늘 다녀간 이웃 ${Number(footprintVisitors || 0)}명`,
+    ];
     element.innerHTML = items.map(text => `<span>${escapeText(text)}</span>`).join("");
-    element.title = "공개 글을 작성한 이웃과 지금 섬을 돌아다니는 이웃";
+    element.title = online
+      ? `공개 글을 작성한 이웃 · 지금 접속 ${Number(online) + 1}명`
+      : "공개 글을 작성한 이웃과 오늘 섬에 들른 이웃";
   });
 }
 
@@ -1411,7 +1415,7 @@ function renderComment(comment, post, child = false) {
         <img class="reply-avatar ${comment.is_ai ? "" : toneClass(comment.author?.color)}" src="${avatar}" alt="">
         <strong>${escapeText(commentName(comment))}</strong>
         ${comment.is_mine && !comment.is_ai ? `<span class="me-tag">나</span>` : ""}
-        ${comment.is_ai ? "" : titleBadge(comment.author?.title) + personaChip(comment.author?.character)}
+        ${comment.is_ai ? "" : titleBadge(comment.author?.title)}
       </div>
       <p>${escapeText(comment.content)}</p>
       <div class="reply-actions">
@@ -1624,21 +1628,7 @@ async function showPost(id, open = true) {
     el("detailBody").innerHTML = `
       <div class="between detail-head detail-topbar">
         <strong class="detail-crumb">고민 읽기</strong>
-        <div class="row detail-tools">
-          <details class="more-menu">
-            <summary aria-label="더 보기 (${post.is_mine ? "수정·삭제" : "신고·차단"})" title="더 보기">⋯</summary>
-            <div class="more-list">
-              ${post.is_mine ? `
-                <button type="button" id="editServerPost">고민 수정</button>
-                <button type="button" class="danger-text" id="deleteServerPost">고민 삭제</button>
-              ` : `
-                <button type="button" id="reportServerPost">이 글 신고</button>
-                ${author?.user_id ? `<button type="button" id="blockPostAuthor">작성자 차단</button>` : ""}
-              `}
-            </div>
-          </details>
-          <button data-close="detail" class="soft">닫기</button>
-        </div>
+        <button data-close="detail" class="soft detail-close">닫기</button>
       </div>
 
 
@@ -1655,8 +1645,9 @@ async function showPost(id, open = true) {
         <div class="row post-author">
           <img class="detail-avatar ${toneClass(author?.color)}" src="${img(animal)}" alt="">
           <strong>${escapeText(nickname)}${post.is_mine ? ` <span class="me-tag">나</span>` : ""}</strong>
-          <small>${escapeText([author?.job, post.years].filter(Boolean).join(" · "))}</small>
-          <span class="badge-row">${titleBadge(author?.title)}${personaChip(author?.character)}</span>
+          ${author?.job ? `<span class="job-chip">${escapeText(author.job)}</span>` : ""}
+          ${post.years ? `<small>${escapeText(post.years)}</small>` : ""}
+          <span class="badge-row">${titleBadge(author?.title)}</span>
         </div>
         <h2 class="detail-title">${escapeText(post.title)}</h2>
         <p class="post-text">${escapeText(post.content)}</p>
@@ -1665,14 +1656,23 @@ async function showPost(id, open = true) {
             <span class="topic-chip">${escapeText(post.topic)}</span>
             ${post.visibility === "private" ? "나만보기" : escapeText(ways[way] || "")}
           </small>
-          <button
-            type="button"
-            class="soft reaction-btn"
-            id="reactionButton"
-            aria-pressed="${post.reacted_by_me}"
-          >
-            ${post.reacted_by_me ? "♥" : "♡"} 공감 ${post.reaction_count}
-          </button>
+          <span class="row post-foot-actions">
+            <button
+              type="button"
+              class="soft reaction-btn"
+              id="reactionButton"
+              aria-pressed="${post.reacted_by_me}"
+            >
+              ${post.reacted_by_me ? "♥" : "♡"} 공감 ${post.reaction_count}
+            </button>
+            ${post.is_mine ? `
+              <button type="button" class="link-btn quiet" id="editServerPost">수정</button>
+              <button type="button" class="link-btn quiet" id="deleteServerPost">삭제</button>
+            ` : `
+              <button type="button" class="link-btn quiet" id="reportServerPost">신고</button>
+              ${author?.user_id ? `<button type="button" class="link-btn quiet" id="blockPostAuthor">차단</button>` : ""}
+            `}
+          </span>
         </div>
       </article>
 
@@ -1716,11 +1716,8 @@ async function showPost(id, open = true) {
         ` : ""}
       </section>`}
       </div>
-
-      <section id="similarPosts" class="similar-posts browse-zone" aria-label="둘러보기"></section>
     `;
 
-    renderSimilar(post.id);
     if (post.is_mine && post.visibility === "private") setupPrivateChat(post.id);
 
     const body = el("detailBody");
@@ -2032,19 +2029,10 @@ async function loadMyPosts(selectedTab) {
       tab !== selectedTab
     ) return;
 
-    container.innerHTML = posts.map(post => `
-      <article>
-        <button class="soft" data-post="${post.id}">
-          ${post.has_unread ? "● " : ""}${escapeText(post.title)}
-        </button>
-        <small>
-          ${escapeText(post.topic)} · 답글 ${post.comment_count}
-        </small>
-        <small>
-          ${escapeText(new Date(post.created_at).toLocaleString("ko-KR"))}
-        </small>
-      </article>
-    `).join("") || "<p>작성한 고민이 없어요.</p>";
+    container.innerHTML = posts.map(post => worryCard({
+      ...post,
+      author: { nickname: me.nick },
+    }, { unread: post.has_unread })).join("") || "<p>작성한 고민이 없어요.</p>";
   } catch (error) {
     if (el("myServerPosts") === container) {
       container.textContent = error.message;
@@ -2222,25 +2210,11 @@ async function loadMyComments() {
     if (el("myServerComments") !== container) return;
 
     container.innerHTML = comments.map(comment => `
-      <article class="reply">
-        <button
-          type="button"
-          class="soft"
-          ${comment.post_id === null
-            ? "disabled"
-            : `data-post="${comment.post_id}"`}
-        >
-          ${comment.post_id === null
-            ? "현재 볼 수 없는 글"
-            : escapeText(comment.post_title)}
-        </button>
-        <p>${escapeText(comment.content)}</p>
-        <small>
-          ${escapeText(
-            new Date(comment.created_at).toLocaleString("ko-KR")
-          )}
-        </small>
-      </article>
+      <button type="button" class="card comment-card" ${comment.post_id === null ? "disabled" : `data-post="${comment.post_id}"`}>
+        <small class="mode">${escapeText(new Date(comment.created_at).toLocaleString("ko-KR"))}</small>
+        <strong>${comment.post_id === null ? "현재 볼 수 없는 글" : escapeText(comment.post_title)}</strong>
+        <small class="comment-preview">${escapeText(comment.content)}</small>
+      </button>
     `).join("") || "<p>아직 작성한 댓글이 없어요.</p>";
   } catch (error) {
     if (el("myServerComments") === container) {
@@ -2264,16 +2238,15 @@ function personal(detail = null) {
   const tabs = [
     ["alerts", unread ? "댓글 알림 " + unread : "댓글 알림"],
     ["private", "나만보기"],
-    ["own", "내 고민"],
-    ["comments", "내 댓글"],
+    ["own", "내 고민글"],
+    ["comments", "작성한 댓글"],
     ["titles", "칭호 도감"],
-    ["settings", "캐릭터 설정"],
   ];
   const heading = detail
     ? "댓글 상세"
     : tab === "alerts"
       ? "댓글 알림"
-      : tabs.find(([id]) => id === tab)[1];
+      : (tabs.find(([id]) => id === tab) || tabs[0])[1];
   section.hidden = false;
   el("profile").setAttribute("aria-expanded", "true");
   requestAnimationFrame(fitPersonal);
@@ -2286,12 +2259,6 @@ function personal(detail = null) {
   content = '<div id="myServerComments">내 댓글을 불러오는 중...</div>';
   } else if (tab === "titles") {
     content = '<div id="titleBook" class="title-book">칭호를 불러오는 중...</div>';
-  } else if (tab === "settings") {
-    content = `<form id="profileSettings" class="profile-settings">
-      <label for="profileNick">닉네임</label><input id="profileNick" maxlength="18" required value="${escapeText(me.nick)}">
-      <p class="my-persona">내 성격 ${personaChip(CHARACTER_KEYS[me.animal])} <small>활동 칭호는 "칭호 도감"에서 볼 수 있어요</small></p>
-      <strong>캐릭터</strong><div class="profile-character-grid">${characterNames.map((name, index) => `<button type="button" data-profile-animal="${index}" aria-label="${name} · ${personaOf(CHARACTER_KEYS[index])?.label || ""}" title="${personaOf(CHARACTER_KEYS[index])?.label || ""}" aria-pressed="${index === me.animal}"><img class="${toneClass(me.color)}" src="${img(index)}" alt=""><span>${personaOf(CHARACTER_KEYS[index])?.icon || ""} ${name}</span></button>`).join("")}</div>
-      <button class="wide">변경사항 저장</button></form>`;
   } else {
     content = '<div id="myServerPosts">내 고민을 불러오는 중...</div>';
   }
@@ -2300,7 +2267,6 @@ function personal(detail = null) {
     ${detail ? "" : '<div class="row personal-tabs">' + tabs.map(([id, label]) => `<button data-tab="${id}" ${id === tab ? "" : 'class="soft"'} aria-pressed="${id === tab}">${label}</button>`).join("") + "</div>"}${content}`;
   if (!detail) loadMySummary();
   if (!detail && tab === "titles") loadTitleBook();
-  if (!detail && tab === "settings") setupProfileSettings(section);
   if (!detail && (tab === "own" || tab === "private")) {
     loadMyPosts(tab);
   }
@@ -2309,7 +2275,7 @@ function personal(detail = null) {
 }
   const logoutButton = document.createElement("button");
 logoutButton.type = "button";
-logoutButton.className = "soft";
+logoutButton.className = "soft logout-btn";
 logoutButton.textContent = "로그아웃";
 
 logoutButton.onclick = () => {
@@ -2319,12 +2285,23 @@ logoutButton.onclick = () => {
 
 const blocksButton = document.createElement("button");
 blocksButton.type = "button";
-blocksButton.className = "soft";
+blocksButton.className = "link-btn quiet";
 blocksButton.textContent = "차단한 이용자";
 blocksButton.onclick = showBlockedUsers;
 
-section.append(blocksButton);
-section.append(logoutButton);
+const characterButton = document.createElement("button");
+characterButton.type = "button";
+characterButton.className = "link-btn quiet";
+characterButton.textContent = "캐릭터 수정";
+characterButton.onclick = openCharacterSettings;
+
+// 아래 줄: 왼쪽에 작은 글자 링크(캐릭터 수정 · 차단한 이용자), 오른쪽 끝에 로그아웃
+const foot = document.createElement("div");
+foot.className = "personal-foot";
+const links = document.createElement("span");
+links.append(characterButton, blocksButton);
+foot.append(links, logoutButton);
+section.append(foot);
 if (!detail && tab === "comments") {
   loadMyComments();
 }
@@ -2337,7 +2314,8 @@ async function loadMySummary() {
   try {
     const s = await api("/users/me/summary");
     if (el("mySummary") !== box) return;
-    box.textContent = `쓴 글 ${s.post_count}개 · 쓴 댓글 ${s.comment_count}개 · 위로한 고민 ${s.posts_helped}개 · 받은 고마움 ${s.thanks_received}번`;
+    box.textContent = `작성한 글 ${s.post_count}개 · 받은 고마움 ${s.thanks_received}번`;
+    box.title = "받은 고마움: 내 고민에 남긴 위로에 작성자가 '고마워요'를 누른 횟수";
   } catch (error) {
     if (el("mySummary") === box) box.textContent = "활동 요약을 불러오지 못했어요.";
   }
@@ -2362,7 +2340,7 @@ async function loadTitleBook(data = null) {
                 data-title-key="${escapeText(t.key)}" ${t.earned ? "" : "disabled"}
                 aria-pressed="${book.current?.key === t.key}"
                 aria-label="${escapeText(t.name)}${t.earned ? " (얻음, 누르면 대표 칭호로)" : ` (${t.progress}/${t.need})`}">
-                <span class="title-icon">${t.earned ? escapeText(t.icon) : "🔒"}</span>
+                <span class="title-icon" aria-hidden="true"></span>
                 <strong>${escapeText(t.name)}</strong>
                 <small>${escapeText(t.desc)}</small>
                 ${t.earned
@@ -2583,9 +2561,7 @@ function setupProfileSettings(section) {
         loadNeighbors()
       ]);
 
-      if (section.isConnected && tab === "settings") {
-        personal();
-      }
+      if (section.open) section.close();
 
       toast("캐릭터와 닉네임을 변경했어요.");
     } catch (error) {
@@ -2597,6 +2573,29 @@ function setupProfileSettings(section) {
       submit.textContent = "변경사항 저장";
     }
   };
+}
+
+// 캐릭터 수정은 좁은 프로필 패널 대신 큰 창에서. 기존 설정 폼(setupProfileSettings)을 그대로 씀
+function openCharacterSettings() {
+  let dialog = el("characterDialog");
+  if (!dialog) {
+    dialog = document.createElement("dialog");
+    dialog.id = "characterDialog";
+    dialog.className = "paper character-dialog";
+    dialog.setAttribute("aria-labelledby", "characterDialogTitle");
+    document.body.append(dialog);
+    dialog.addEventListener("click", (event) => {
+      if (event.target === dialog || event.target.closest("[data-close-character]")) dialog.close();
+    });
+  }
+  dialog.innerHTML = `<div class="between"><h2 id="characterDialogTitle">캐릭터 수정</h2><button type="button" class="soft" data-close-character>닫기</button></div>
+    <form id="profileSettings" class="profile-settings">
+      <label for="profileNick">닉네임</label><input id="profileNick" maxlength="18" required value="${escapeText(me.nick)}">
+      <strong>캐릭터</strong><div class="profile-character-grid">${characterNames.map((name, index) => `<button type="button" data-profile-animal="${index}" aria-label="${name}" aria-pressed="${index === me.animal}"><img class="${toneClass(me.color)}" src="${img(index)}" alt=""><span>${name}</span></button>`).join("")}</div>
+      <button class="wide">변경사항 저장</button></form>`;
+  setupProfileSettings(dialog);
+  closeProfile();
+  dialog.showModal();
 }
 
 function closeProfile() {
@@ -2712,6 +2711,18 @@ if (me && authToken()) {
       button.setAttribute("aria-pressed", button.dataset.way === value);
     }
   }
+  // 고민 주제 칩: 다시 누르면 해제(전체)
+  const categoryBox = el("categoryFilterOptions");
+  if (categoryBox) {
+    categoryBox.innerHTML = Object.keys(topics).map(group =>
+      `<button type="button" data-filter-category="${escapeText(group)}" aria-pressed="false">${escapeText(group)}</button>`).join("");
+  }
+  function chooseCategory(value) {
+    categoryFilter = value;
+    for (const button of filters.querySelectorAll("[data-filter-category]")) {
+      button.setAttribute("aria-pressed", String(button.dataset.filterCategory === value));
+    }
+  }
   el("query").onfocus = el("query").onclick = () => {
     filters.hidden = false;
   };
@@ -2724,6 +2735,13 @@ if (me && authToken()) {
   filters.onclick = (event) => {
     const button = event.target.closest("[data-way]");
     if (button) chooseComfort(button.dataset.way);
+    const category = event.target.closest("[data-filter-category]");
+    if (category) chooseCategory(categoryFilter === category.dataset.filterCategory ? "" : category.dataset.filterCategory);
+    if (event.target.closest("#filterReset")) {
+      chooseComfort("");
+      chooseCategory("");
+    }
+    if (event.target.closest("#filterApply")) search.requestSubmit();
   };
   search.onsubmit = (event) => {
     event.preventDefault();
@@ -2750,6 +2768,7 @@ if (me && authToken()) {
   el("reset").onclick = () => {
     searchText = el("query").value = "";
     chooseComfort("");
+    chooseCategory("");
     setWaitingOnly(false);
     renderFeed();
   };

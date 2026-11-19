@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://ondo-api.onrender.com; base-uri 'self'; form-action 'self'; object-src 'none'">
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ON-DO 직무섬</title><link rel="stylesheet" href="css/village.css?v=20261117-003"><link rel="stylesheet" href="css/island-extra.css?v=20261119-25"><script defer src="js/api.js?v=20261119-4"></script><script defer src="js/review.js"></script><script defer src="js/village.js?v=20261119-2"></script><script defer src="js/island-core.js?v=20261119-27"></script>
+<title>ON-DO 직무섬</title><link rel="stylesheet" href="css/village.css?v=20261117-003"><link rel="stylesheet" href="css/island-extra.css?v=20261119-26"><script defer src="js/api.js?v=20261119-4"></script><script defer src="js/review.js"></script><script defer src="js/village.js?v=20261119-2"></script><script defer src="js/island-core.js?v=20261119-28"></script>
 </head>
 <body>
 <main class="village">
@@ -19,16 +19,20 @@
 <form id="search" class="glass search">
 <label for="query">내 고민과 닮은 이야기 찾기</label>
 <div class="row"><input id="query" type="search" aria-controls="searchFilters" placeholder="예: 회의가 너무 많아요" title="내 이야기를 공개하지 않아도 비슷한 경험을 읽을 수 있어요."><button>찾아보기</button></div>
-<div id="searchFilters" hidden>
+<div id="searchFilters" class="worry-filter" hidden>
 <fieldset class="search-filters">
-<legend>필터</legend>
+<legend>고민 필터</legend>
+<p id="categoryFilterLabel">고민 주제</p>
+<div id="categoryFilterOptions" class="comfort-filter-options" role="group" aria-labelledby="categoryFilterLabel"></div>
 <p id="comfortFilterLabel">받고 싶은 위로</p>
 <div class="comfort-filter-options" role="group" aria-labelledby="comfortFilterLabel">
 <button type="button" data-way="" aria-pressed="true">전체</button>
-<button type="button" data-way="0" aria-pressed="false">공감해주세요</button>
+<button type="button" data-way="0" aria-pressed="false">들어주세요</button>
 <button type="button" data-way="1" aria-pressed="false">경험을 나눠주세요</button>
-<button type="button" data-way="2" aria-pressed="false">의견을 들려주세요</button>
-</div></fieldset></div>
+<button type="button" data-way="2" aria-pressed="false">함께 생각해주세요</button>
+</div>
+<div class="filter-actions"><button type="button" id="filterReset" class="soft">초기화</button><button type="button" id="filterApply">적용하기</button></div>
+</fieldset></div>
 </form>
 </div>
 <details id="themePicker" class="theme-picker">

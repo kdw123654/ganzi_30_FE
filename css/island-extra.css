@@ -1601,12 +1601,15 @@ body {
   z-index: 5;
 }
 
-/* 섬 이름 카드의 이웃 수: 좁은 칸에서도 잘리지 않고 항목 단위로 줄바꿈 */
+/* 섬 이름 카드의 이웃 수: "총 이웃 N명 · 오늘 다녀간 이웃 N명" 한 줄 (기획 11/19) */
 .title .island-counts,
 .title #people.island-counts {
-  display: grid; /* 항목마다 한 줄씩 (직무섬 village.css의 nowrap 한 줄 배치를 덮어씀) */
-  gap: 1px;
-  white-space: normal;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0;
+  font-weight: 400;
+  letter-spacing: 0;
+  white-space: nowrap;
 }
 /* 내 프로필 버튼의 닉네임: 칸이 좁으면 말줄임 대신 두 줄까지 */
 .profile strong {
@@ -1616,55 +1619,53 @@ body {
   -webkit-line-clamp: 2;
   line-clamp: 2;
 }
-.zoom-identity .island-counts span + span::before {
-  content: "· ";
-  opacity: 0.6;
-}
 
-/* ── 위로 카드 구분 강화: 댓글 묶음(원 댓글 + 답글)마다 흰 카드 + 테두리, 버튼 줄은 점선으로 분리 ── */
-#detailBody .replies {
-  margin-top: 20px;
-  padding-top: 14px;
-  border-top: 1px solid #dde7de; /* 본문 카드와 위로 구역 사이 경계 */
+/* ── 위로(댓글): 피그마처럼 간결하게. 본문과는 구분선, 댓글끼리는 얇은 줄, 온도(AI)는 연한 초록 상자 (기획 11/19) ── */
+#detailBody .replies,
+#detailBody .talk-replies {
+  margin-top: 6px;
+  padding-top: 18px;
+  border-top: 1px solid #e3e7da;
+  background: transparent;
 }
 #detailBody .thread {
-  margin: 0 0 12px;
-  border: 1px solid #d6e2d8;
-  border-radius: 14px;
-  background: #fff;
-  box-shadow: 0 1px 3px rgba(36, 65, 47, 0.08);
-  overflow: hidden;
+  margin: 0;
+  padding: 12px 0;
+  border: 0;
+  border-bottom: 1px solid #eef0e8;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  overflow: visible;
+}
+#detailBody .thread:last-of-type {
+  border-bottom: 0;
 }
 #detailBody .thread > .reply:not(.child) {
-  padding: 12px 14px 6px;
+  padding: 0;
   border: 0;
   border-radius: 0;
   background: transparent;
 }
-/* 온도(AI) 묶음: 따뜻한 배경 + 왼쪽 주황 띠 */
-#detailBody .thread:has(> .reply.from-ai:not(.child)) {
-  background: #fff8f0;
-  border-color: #f0d4b0;
-  border-left: 4px solid #f0a95c;
+#detailBody .thread:has(> .reply.from-ai:not(.child)) > .reply:not(.child) {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #eef6ec;
 }
-/* 내 댓글 묶음: 왼쪽 초록 띠 */
-#detailBody .thread:has(> .reply.mine:not(.child)) {
-  border-left: 4px solid #6fae8f;
-}
-/* 답글: 같은 카드 안에서 살짝 들여 쓰고 연한 바탕 */
 #detailBody .thread > .reply.child {
-  margin: 0 12px 10px 26px;
-  padding: 8px 10px 4px 12px;
-  border-radius: 0 10px 10px 0;
-  background: #f4f8f3;
+  margin: 8px 0 0 26px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: #f6f8f3;
 }
 #detailBody .thread > .reply.child.from-ai {
-  background: #fff3e6;
+  background: #eef6ec;
 }
 #detailBody .reply-actions {
-  margin-top: 8px;
-  padding-top: 2px;
-  border-top: 1px dashed #e1e9e2;
+  margin-top: 6px;
+  padding-top: 0;
+  border-top: 0;
 }
 
 /* ── 게시 전 점검: '조금 더 적어 볼래요?' 안내 ── */
@@ -2138,4 +2139,370 @@ body {
   margin: 4px 0 0;
   color: #6b7f74;
   font-size: 12px;
+}
+
+/* ───────── 11/19 기획 피드백 (피그마 최종안) ───────── */
+@font-face {
+  font-family: "Hakgyoansim Dunggeunmiso";
+  src: url("../assets/fonts/HakgyoansimDunggeunmiso-R.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Hakgyoansim Dunggeunmiso";
+  src: url("../assets/fonts/HakgyoansimDunggeunmiso-B.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+:root {
+  --ondo-round: "Hakgyoansim Dunggeunmiso", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  --panel-glass: rgba(251, 252, 243, 0.72);
+}
+
+/* 섬 이름: 둥근미소. 아래 숫자는 굵기 빼고 한 줄 (총 이웃 · 오늘 다녀간 이웃) */
+.title h1,
+.zoom-identity strong {
+  font-family: var(--ondo-round);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.title.glass {
+  width: max-content;
+  max-width: calc(100vw - 32px);
+}
+.identity .island-counts,
+.identity .zoom-identity .island-counts {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0;
+  font-weight: 400;
+  white-space: nowrap;
+}
+.identity .island-counts span {
+  display: inline;
+  font-weight: 400;
+}
+.identity .island-counts span + span::before {
+  content: " · ";
+  white-space: pre;
+}
+
+/* 큰 박스는 반투명(뒤 지도가 비치게), 안의 목록 카드는 불투명해서 글이 잘 보이게 */
+.title.glass,
+.search.glass,
+.neighbors.glass,
+#personal.personal {
+  background: var(--panel-glass);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+#feedPanel .card,
+#personal .card,
+#personal .title-card,
+.worry-filter .search-filters {
+  background: #fffdf7;
+}
+
+/* 고민 카드: 위로 방식·날짜(작은 초록) / 제목(굵게) / 닉네임·주제(작은 회색) */
+.card.worry-card,
+.card.comment-card {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  text-align: left;
+  padding: 11px 14px;
+  border-radius: 14px;
+  border: 1px solid #e6e9dd;
+  box-shadow: none;
+}
+.card.worry-card .mode,
+.card.comment-card .mode {
+  font-size: 12px;
+  font-weight: 600;
+  color: #3e6b52;
+}
+.card.worry-card strong,
+.card.comment-card strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #1f3328;
+}
+.card.worry-card .card-author,
+.card.worry-card .card-meta,
+.card.comment-card .comment-preview {
+  font-size: 12px;
+  font-weight: 400;
+  color: #6c7a70;
+}
+.card.comment-card .comment-preview {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.card .waiting-badge {
+  flex: none;
+  font-size: 11px;
+  font-weight: 600;
+}
+.unread-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e8633a;
+}
+#myServerPosts,
+#myServerComments {
+  display: grid;
+  gap: 8px;
+}
+
+/* 시간대 고르기: 다섯 개를 같은 크기 동그라미로 한 줄에 */
+.theme-picker .themes {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  width: auto;
+  padding: 8px;
+  border-radius: 999px;
+}
+.theme-picker .themes button {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border-radius: 50%;
+  aspect-ratio: 1;
+}
+.theme-picker .themes button img {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  transform: none;
+}
+.theme-picker .themes .theme-auto {
+  font-size: 13px;
+  font-weight: 700;
+  color: #24412f;
+  background: #f3f1e6;
+}
+.theme-picker .themes .theme-auto[aria-pressed="true"] {
+  background: #2f5d47;
+  color: #fff;
+}
+@media (max-width: 690px) {
+  .theme-picker .themes {
+    width: auto;
+    gap: 5px;
+    padding: 6px;
+  }
+  .theme-picker .themes button {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+/* 고민 필터 (피그마 고민 필터): 고민 주제 + 받고 싶은 위로, 초기화 · 적용하기 */
+.worry-filter .search-filters {
+  margin-top: 10px;
+  padding: 16px 18px 14px;
+  border: 1px solid #e3e7da;
+  border-radius: 16px;
+}
+.worry-filter legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f3328;
+}
+.worry-filter p {
+  clear: both;
+  margin: 10px 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #2c4436;
+}
+.worry-filter .comfort-filter-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.worry-filter .comfort-filter-options button {
+  min-height: 34px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 0;
+  background: #eef1e8;
+  color: #2c4436;
+  font-size: 13px;
+  font-weight: 500;
+}
+.worry-filter .comfort-filter-options button[aria-pressed="true"] {
+  background: #3e6555;
+  color: #fff;
+  font-weight: 700;
+}
+.worry-filter .filter-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 16px;
+}
+.worry-filter .filter-actions button {
+  min-width: 96px;
+  min-height: 38px;
+  border-radius: 999px;
+}
+
+/* 프로필 메뉴: 버튼 높이 줄이고, 아래 줄은 왼쪽 작은 링크 · 오른쪽 로그아웃 */
+#personal .personal-tabs button {
+  min-height: 34px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+#personal .my-summary {
+  font-size: 13px;
+}
+#personal .personal-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #e3e7da;
+}
+#personal .personal-foot span {
+  display: flex;
+  gap: 10px;
+}
+#personal .personal-foot .link-btn {
+  min-height: 0;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: #6c7a70;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+#personal .personal-foot .logout-btn {
+  min-height: 34px;
+  margin-left: auto;
+  padding: 6px 16px;
+  font-size: 13px;
+}
+
+/* 칭호 도감: 이모지 대신 등급 색 메달 하나로 통일 */
+#personal .title-card .title-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 0;
+  background: #cfd8cb;
+}
+#personal .title-card .title-icon::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.08);
+}
+#personal .title-card.earned.tier-1 .title-icon { background: #7fb38a; }
+#personal .title-card.earned.tier-2 .title-icon { background: #e8a25a; }
+#personal .title-card.earned.tier-3 .title-icon { background: #5d9bd1; }
+#personal .title-card.earned.tier-4 .title-icon { background: linear-gradient(135deg, #b78cf0, #f0b35a); }
+#personal .title-card.locked .title-icon::before {
+  width: 10px;
+  height: 8px;
+  border-radius: 2px;
+  background: #fff;
+  box-shadow: 0 -5px 0 -2px #fff;
+}
+
+/* 캐릭터 수정 창 (프로필 메뉴의 캐릭터 수정) */
+.character-dialog {
+  width: min(720px, calc(100% - 24px));
+  max-height: calc(100dvh - 40px);
+  overflow: auto;
+}
+.character-dialog .profile-character-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 10px;
+  margin: 10px 0 16px;
+}
+.character-dialog .profile-character-grid button {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 10px 6px;
+}
+.character-dialog .profile-character-grid img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
+/* 고민 상세: 넓게, 본문과 댓글만. 본문과 댓글 사이 구분선, 댓글은 줄로 나눠 간결하게 */
+#detail {
+  width: min(880px, calc(100% - 32px));
+}
+#detailBody .talk-card {
+  border-radius: 18px;
+}
+#detailBody .post-author {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+#detailBody .post-author .job-chip {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: #e8efe4;
+  color: #2f5d47;
+  font-size: 12px;
+  font-weight: 700;
+}
+#detailBody .detail-title {
+  font-size: 22px;
+  line-height: 1.4;
+}
+#detailBody .post-text {
+  font-size: 15px;
+  line-height: 1.75;
+}
+#detailBody .post-foot-actions {
+  align-items: center;
+  gap: 10px;
+}
+#detailBody .post-foot-actions .link-btn {
+  min-height: 0;
+  padding: 2px 0;
+  font-size: 12px;
+}
+#detailBody button.detail-close {
+  min-height: 36px;
+}
+
+/* 지도 캐릭터 전반적으로 조금 작게 */
+.marker img {
+  width: 40px;
+  height: auto;
 }
