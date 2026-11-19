@@ -313,7 +313,8 @@ nav {
   border-radius: 10px;
   opacity: 0.65;
 }
-.character-card[aria-pressed="true"] {
+.character-card[aria-pressed="true"],
+.character-card.is-current {
   opacity: 1;
   background: #f1f8fc;
   box-shadow: 0 2px 12px #31594126;
@@ -931,4 +932,49 @@ nav {
 }
 #choose .edit-cancel[hidden] {
   display: none;
+}
+
+/* 캐릭터 카드 위 팔레트 (직무 아이콘 자리). 가운데 카드는 팔레트 아래 '색감 고르기' */
+.character-card .palette-badge {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 2px;
+  height: 23%;
+  width: 40%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #2f5d47;
+  z-index: 2;
+}
+.character-card .palette-badge img {
+  display: block;
+  width: auto;
+  height: clamp(22px, 3.6vw, 44px);
+  object-fit: contain;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.12));
+}
+.character-card button.palette-badge {
+  cursor: pointer;
+  border-radius: 10px;
+}
+.character-card button.palette-badge span {
+  font-size: clamp(11px, 1.1vw, 13px);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.character-card button.palette-badge:hover img,
+.character-card button.palette-badge[aria-expanded="true"] img {
+  transform: translateY(-2px) rotate(-6deg);
+}
+.character-card button.palette-badge img {
+  transition: transform 0.2s ease;
+}
+.character-card button.palette-badge:focus-visible {
+  outline: 3px solid #0084a7;
+  outline-offset: 2px;
+}
+.character-card.is-current {
+  cursor: default;
 }

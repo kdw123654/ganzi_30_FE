@@ -58,31 +58,35 @@ async function recommend() {
   }
 }
 
-const jobIcons = {
-  '디자인': 'design',
-  '개발': 'development',
-  '마케팅': 'marketing',
-  '영업': 'marketing'
-};
 function select(index, refreshNick = true) {
   animal = (index + names.length) % names.length;
-  const icon = jobIcons[draft.job];
   const cards = byId('cards');
+  const paletteWasOpen = !byId('paletteOptions').hidden;
   cards.replaceChildren();
   for (const offset of [-1, 0, 1]) {
     const choice = (animal + offset + names.length) % names.length;
-    const card = document.createElement('button');
-    card.type = 'button';
-    card.className = 'character-card';
-    card.setAttribute('aria-label', names[choice]);
-    card.setAttribute('aria-pressed', offset === 0);
-    const iconSlot = document.createElement('span');
-    iconSlot.className = 'job-icon';
-    if (icon) {
-      const badge = new Image();
-      badge.src = 'assets/jobs/' + icon + '.png';
-      badge.alt = draft.job;
-      iconSlot.append(badge);
+    // 가운데(고른) 카드는 안에 '색감 고르기' 버튼이 들어가야 해서 button 대신 div (버튼 안에 버튼은 안 됨)
+    const card = document.createElement(offset ? 'button' : 'div');
+    card.className = 'character-card' + (offset ? '' : ' is-current');
+    if (offset) {
+      card.type = 'button';
+      card.setAttribute('aria-label', names[choice] + ' 고르기');
+      card.setAttribute('aria-pressed', 'false');
+    } else {
+      card.setAttribute('role', 'group');
+      card.setAttribute('aria-label', '고른 캐릭터 ' + names[choice]);
+      card.tabIndex = -1;
+    }
+    // 위쪽 아이콘: 직무 아이콘(노트북 등) 대신 팔레트 (피그마). 가운데 카드만 눌러서 색감을 고를 수 있음
+    const iconSlot = document.createElement(offset ? 'span' : 'button');
+    iconSlot.className = 'palette-badge';
+    iconSlot.innerHTML = '<img src="assets/palette.svg" alt="">' + (offset ? '' : '<span>색감 고르기</span>');
+    if (!offset) {
+      iconSlot.type = 'button';
+      iconSlot.id = 'paletteToggle';
+      iconSlot.setAttribute('aria-controls', 'paletteOptions');
+      iconSlot.setAttribute('aria-expanded', String(paletteWasOpen));
+      iconSlot.onclick = togglePalette;
     }
     const animalImage = new Image();
     animalImage.className = ['character-image', toneClass(pickedColor)].filter(Boolean).join(' ');
@@ -91,8 +95,8 @@ function select(index, refreshNick = true) {
     const base = document.createElement('span');
     base.className = 'character-base';
     card.append(iconSlot, base, animalImage);
-    card.onclick = () => {
-      if (offset) select(choice);
+    if (offset) card.onclick = () => {
+      select(choice);
       cards.children[1].focus();
     };
     cards.append(card);
@@ -134,11 +138,11 @@ function renderPalette() {
       <span>${label}</span>
     </button>`).join('');
 }
-byId('paletteToggle').onclick = () => {
+function togglePalette() {
   const box = byId('paletteOptions');
   box.hidden = !box.hidden;
   byId('paletteToggle').setAttribute('aria-expanded', String(!box.hidden));
-};
+}
 byId('paletteOptions').onclick = event => {
   const button = event.target.closest('[data-color]');
   if (!button) return;
