@@ -2707,3 +2707,32 @@ body {
 .marker.campfire.level-hot .campfire-flame img { width: 104px; }
 .marker.campfire.level-cold .campfire-flame { opacity: 0.85; filter: none; }
 .marker.campfire.level-hot .campfire-flame { filter: drop-shadow(0 0 18px rgba(255, 110, 30, 0.75)); }
+
+/* ───────── 11/20: 글쓰기·수정 창도 고민 상세와 같은 크기로 (가운데, 1040 × 780) ───────── */
+#editor {
+  inset: 0;
+  margin: auto;
+  width: min(1040px, calc(100% - 32px));
+  height: fit-content;
+  max-height: calc(100dvh - 28px);
+  overflow: auto;
+}
+/* 고민 상세·글쓰기 창 높이를 똑같이: 안쪽 여백까지 포함해서 같은 높이 */
+#editor,
+#detail {
+  box-sizing: border-box;
+  min-height: min(832px, calc(100dvh - 28px));
+}
+/* 지도 위 '🔥 공명'은 눌러서 그 이웃의 닮은 고민을 볼 수 있음 */
+.marker button.resonance-tag {
+  pointer-events: auto;
+  cursor: pointer;
+  min-height: 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+.marker button.resonance-tag:hover,
+.marker button.resonance-tag:focus-visible {
+  background: #ffe2c2;
+}

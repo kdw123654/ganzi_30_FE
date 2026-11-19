@@ -399,6 +399,7 @@ const islandId = Number(
 let serverNeighbors = [];
 let onlineNeighbors = new Map(); // user_id → { author, x, y } 지금 접속 중인 이웃
 let resonance = new Map(); // user_id → similarity 내 고민과 공명하는 이웃
+let resonancePosts = new Map(); // user_id → 그 이웃의 고민 중 내 고민과 가장 닮은 글 id ('🔥 공명'을 누르면 엶)
 let presenceEnabled = true;
 let islandTemp = null;
 
@@ -564,7 +565,7 @@ function renderMarkers() {
         // 공명하는 이웃은 자기 고민을 남긴 자리에서 출발해 한 명씩 차례로 걸어옴
         from: similarity ? anchor : null,
         delay: similarity ? resonant.indexOf(id) * 0.9 : 0,
-        html: personMarker(author, { live: Boolean(live), similarity }),
+        html: personMarker(author, { live: Boolean(live), similarity, postId: resonancePosts.get(id) }),
       });
     }
   }
@@ -617,10 +618,13 @@ function renderMarkers() {
   syncMarkers(items);
 }
 
-function personMarker(author, { live = false, similarity = null } = {}) {
+function personMarker(author, { live = false, similarity = null, postId = null } = {}) {
   return `
     <div class="marker author-pin person ${live ? "live" : "wander"} ${similarity ? "resonant" : ""}">
-      ${similarity ? `
+      ${similarity ? postId ? `
+        <button type="button" class="resonance-tag" data-post="${postId}"
+          title="내 고민과 비슷한 정도 ${Math.round(similarity * 100)}% · 눌러서 이 이웃의 닮은 고민 보기"
+          aria-label="${escapeText(author.nickname)}의 닮은 고민 보기">🔥 공명</button>` : `
         <span class="resonance-tag" title="내 고민과 비슷한 정도 ${Math.round(similarity * 100)}%">
           🔥 공명
         </span>` : ""}
@@ -746,11 +750,14 @@ async function loadResonance() {
     }
     const onIsland = new Set(serverNeighbors.map(n => n.author.user_id));
     const next = new Map();
+    const bestPost = new Map();
     for (const item of similarCache.get(postId)) {
       const id = item.author?.user_id;
       if (!id || id === me.id || !onIsland.has(id)) continue;
+      if (item.similarity > (next.get(id) || 0)) bestPost.set(id, item.id);
       next.set(id, Math.max(next.get(id) || 0, item.similarity));
     }
+    resonancePosts = bestPost;
     // 가장 비슷한 이웃 4명까지만
     resonance = new Map(
       [...next].sort((a, b) => b[1] - a[1]).slice(0, 4),
