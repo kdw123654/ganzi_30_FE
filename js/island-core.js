@@ -888,7 +888,7 @@ function hasFinal(word) {
 const copula = (word) => (hasFinal(word) ? "이에요" : "예요");
 const topicMark = (word) => (hasFinal(word) ? "은" : "는");
 
-const keeperSvg = (size = 56) => `
+const keeperSvg = (size = 70) => `
   <svg class="keeper-art" width="${size}" height="${size}" viewBox="0 0 64 64" aria-hidden="true">
     <ellipse cx="32" cy="59" rx="15" ry="3.5" fill="#00000022"/>
     <path d="M18 56c0-12 6-20 14-20s14 8 14 20z" fill="#2f6f8f"/>
@@ -2830,6 +2830,7 @@ if (me && authToken()) {
     renderReview();
     reviewTimer = setTimeout(() => checkPost(requestId), delay);
   }
+  let reviewFixTotal = 0; // 이번 점검 창에서 처음 찾은 문제 수 (몇 건 반영했는지 보여 주려고)
   const issueLabels = { PERSONAL_INFO: "개인정보·회사명", OFFENSIVE: "거친 표현", CRISIS: "위기 신호" };
   function showReviewResults(showResults) {
     el("suggestionPanel").hidden = showResults;
@@ -2908,73 +2909,77 @@ if (me && authToken()) {
     return parts;
   }
 
-  // 개인정보 말고 다른 문제(거친 표현 등)는 12간지 사자가 나와서 고칠 방향을 알려 줌. 위기 신호는 캐릭터 없이 상담 안내만
-  function showWordGuide(issues) {
-    const rough = issues.filter((issue) => issue.type && !["PERSONAL_INFO", "CRISIS"].includes(issue.type));
-    if (!rough.length) return;
-    const first = rough[0];
-    el("reviewResults").insertAdjacentHTML(
-      "afterbegin",
-      `<div class="guard-card lion-guide" role="alert">
-        <img src="${img(CHARACTER_KEYS.indexOf("lion"))}" alt="12간지 다정한 사자">
-        <div>
-          <strong>12간지 다정한 사자</strong>
-          <p>앗, ${rough.length > 1 ? `${rough.length}곳의 표현이` : "이 표현이"} 읽는 이웃에게 상처가 될 수 있어요.</p>
-          <p class="guard-preview">${rough.map((issue) => `<b>“${escapeText(issue.text || "문제 표현")}”</b>`).join(" · ")}<br>${escapeText(first.guide || serverReview?.suggestion || "감정을 순화한 표현으로 바꿔 보세요.")}</p>
-          <div class="row">
-            <button type="button" id="removeRoughWords">이 표현 지우고 고쳐 쓰기</button>
-            <button type="button" class="soft" id="openSuggestions">수정 제안 보기</button>
-          </div>
-        </div>
-      </div>`,
-    );
-    el("removeRoughWords").onclick = () => {
-      const fixed = maskDraft(rough, () => "");
-      pendingDraft.title = fixed.title.trim() || pendingDraft.title;
-      pendingDraft.body = fixed.body.replace(/[ \t]{2,}/g, " ").trim();
-      el("reviewDraftTitle").value = pendingDraft.title;
-      el("reviewDraftBody").value = pendingDraft.body;
-      schedulePostCheck();
-      renderReview();
-      el("reviewDraftBody").focus();
-      toast("사자가 거친 표현을 지웠어요. 마음을 다른 말로 적어 보세요.");
-    };
-    el("openSuggestions").onclick = () => showReviewResults(false);
+  // 문제 표현 하나를 무엇으로 바꿀지: 개인정보는 자연스러운 말로 가리고, 거친 표현은 지움
+  function replacementFor(issue, text) {
+    if (issue.type !== "PERSONAL_INFO") return "";
+    if (/^(01[016789]|0\d{1,2})[-\s.]?\d{3,4}[-\s.]?\d{4}$/.test(text)) return "[전화번호]";
+    if (/@/.test(text)) return "[이메일]";
+    if (/^\d{6}-?\d{7}$/.test(text)) return "[주민번호]";
+    if ((issue.guide || "").startsWith("회사명 대신")) return "우리 회사";
+    return "○○";
+  }
+  function fixLabel(issue) {
+    if (issue.type !== "PERSONAL_INFO") return "거친 표현 지우기";
+    const text = issue.text || "";
+    if (/@|\d{3,4}[-\s.]?\d{4}/.test(text)) return "연락처 가리기";
+    if ((issue.guide || "").startsWith("회사명 대신")) return "회사명 가리기";
+    return "개인정보 가리기";
+  }
+  // 문제 구절이 들어 있는 문장을 찾아 [원래 문장, 고친 문장]을 만든다
+  function fixPreview(issue) {
+    const text = issue.text || "";
+    const source = pendingDraft.body.includes(text) ? pendingDraft.body : pendingDraft.title;
+    const at = text ? source.indexOf(text) : -1;
+    if (at < 0) return { before: text, after: replacementFor(issue, text) };
+    const from = Math.max(source.lastIndexOf("\n", at), ...[".", "!", "?"].map((m) => source.lastIndexOf(m, at - 1))) + 1;
+    const ends = ["\n", ".", "!", "?"].map((m) => source.indexOf(m, at + text.length)).filter((i) => i >= 0);
+    const to = ends.length ? Math.min(...ends) + 1 : source.length;
+    const sentence = source.slice(from, to).trim();
+    const after = sentence.split(text).join(replacementFor(issue, text)).replace(/[ \t]{2,}/g, " ").trim();
+    // 지우고 나면 문장부호만 남는 경우는 '이 부분을 지워요'로 보여 줌
+    return { before: sentence, after: /[\p{L}\p{N}]/u.test(after) ? after : "" };
+  }
+  function applyFixes(list, message) {
+    const fixed = maskDraft(list, (issue, text) => replacementFor(issue, text));
+    pendingDraft.title = fixed.title.replace(/[ \t]{2,}/g, " ").trim() || pendingDraft.title;
+    pendingDraft.body = fixed.body.replace(/[ \t]{2,}/g, " ").trim();
+    el("reviewDraftTitle").value = pendingDraft.title;
+    el("reviewDraftBody").value = pendingDraft.body;
+    schedulePostCheck();
+    renderReview();
+    toast(message);
   }
 
-  function showSecurityGuard(issues) {
-    const personal = issues.filter((issue) => issue.type === "PERSONAL_INFO");
-    if (!personal.length) return;
-    const masked = maskDraft(personal, (_, text) => "●".repeat(Math.min(text.length, 6)));
-    el("reviewResults").insertAdjacentHTML(
-      "afterbegin",
-      `<div class="guard-card" role="alert">
-        <img src="${img(CHARACTER_KEYS.indexOf("tiger"))}" alt="12간지 보안관 호랑이">
-        <div>
-          <strong>12간지 보안관 · 호랑이</strong>
-          <p>잠깐! 방금 적으신 회사명·개인정보 ${personal.length}곳은 비밀 유지를 위해 제가 가려드렸어요.</p>
-          <p class="guard-preview"><b>${escapeText(masked.title)}</b><br>${escapeText(masked.body)}</p>
-          <button type="button" id="applyGuardMask">가린 내용으로 고치기</button>
+  // ON-DO 보안관 사자: 개인정보·거친 표현을 찾으면 통통 튀어나와서 알려 주고, 아래 항목에서 하나씩 '적용하기'
+  function guardCard(issues) {
+    const personal = issues.filter((issue) => issue.type === "PERSONAL_INFO").length;
+    const rough = issues.length - personal;
+    const found = [personal ? `회사명·개인정보 ${personal}곳` : "", rough ? `상처가 될 수 있는 표현 ${rough}곳` : ""]
+      .filter(Boolean).join("과 ");
+    return `<div class="guard-card lion-guide" role="alert">
+      <img src="${img(CHARACTER_KEYS.indexOf("lion"))}" alt="ON-DO 보안관 사자">
+      <div>
+        <strong>ON-DO 보안관 · 사자</strong>
+        <p>잠깐! ${found}을 찾았어요. 아래에서 하나씩 고치거나, 한 번에 고칠 수 있어요.</p>
+        <button type="button" id="applyAllFixes">모두 적용하기</button>
+      </div>
+    </div>`;
+  }
+  function fixItems(issues, required) {
+    return `<ol class="fix-list">${issues.map((issue, index) => {
+      const { before, after } = fixPreview(issue);
+      return `<li class="fix-item">
+        <div class="fix-head">
+          <span class="fix-no">${index + 1}</span>
+          <span class="fix-badge${required ? " required" : ""}">${required ? "필수" : "안내"}</span>
+          <strong>${escapeText(fixLabel(issue))}</strong>
+          <button type="button" class="fix-apply" data-fix="${index}">✓ 적용하기</button>
         </div>
-      </div>`,
-    );
-    el("applyGuardMask").onclick = () => {
-      // 무엇을 가렸는지에 맞춰 자연스러운 말로 바꿈
-      const fixed = maskDraft(personal, (issue, text) => {
-        if (/^(01[016789]|0\d{1,2})[-\s.]?\d{3,4}[-\s.]?\d{4}$/.test(text)) return "[전화번호]";
-        if (/@/.test(text)) return "[이메일]";
-        if (/^\d{6}-?\d{7}$/.test(text)) return "[주민번호]";
-        if ((issue.guide || "").startsWith("회사명 대신")) return "우리 회사";
-        return "○○";
-      });
-      pendingDraft.title = fixed.title;
-      pendingDraft.body = fixed.body;
-      el("reviewDraftTitle").value = fixed.title;
-      el("reviewDraftBody").value = fixed.body;
-      schedulePostCheck();
-      renderReview();
-      toast("보안관이 가린 내용으로 고쳤어요. 다시 점검할게요.");
-    };
+        <del>${escapeText(before)}</del>
+        <p class="fix-after">↩ ${escapeText(after || "(이 부분을 지워요)")}</p>
+        ${issue.guide ? `<small>${escapeText(issue.guide)}</small>` : ""}
+      </li>`;
+    }).join("")}</ol>`;
   }
 
   function renderReview() {
@@ -3057,7 +3062,10 @@ if (me && authToken()) {
     el("reviewResultSummary").textContent = reviewLoading
       ? "서버 응답을 기다리는 중"
       : serverReview
-        ? `서버 점검 완료 · 문제 표현 ${issues.length}건`
+        ? (reviewFixTotal = Math.max(reviewFixTotal, issues.length),
+          reviewFixTotal > issues.length || issues.length
+            ? `${reviewFixTotal}건 중 ${reviewFixTotal - issues.length}건 반영 · 남은 ${blocked ? "필수" : "안내"} ${issues.length}건`
+            : "서버 점검 완료 · 문제 표현 없음")
         : reviewError || (pendingDraft.private ? "나만보기는 점검하지 않음" : "점검 결과 없음");
     el("reviewSuggestionSummary").textContent = serverReview?.suggestion || "";
 
@@ -3066,11 +3074,6 @@ if (me && authToken()) {
     } else if (reviewError) {
       el("reviewResults").innerHTML = `<p class="review-note">${escapeText(reviewError)}</p>`;
     } else if (serverReview) {
-      const issueRows = issues.map((issue) => `<div class="review-result check-row ${blocked ? "pending" : ""}">
-        <div class="between"><strong><span class="check-icon" aria-hidden="true">${blocked ? "!" : "✓"}</span>${escapeText(issueLabels[issue.type] || issue.type || "문제 표현")}</strong><small class="review-badge ${blocked ? "required" : ""}">${blocked ? "수정 필요" : "안내"}</small></div>
-        <small class="check-excerpt">${escapeText(issue.text || "문제 구절 위치를 찾지 못했어요")}</small>
-        ${issue.guide ? `<p>${escapeText(issue.guide)}</p>` : ""}
-      </div>`).join("");
       // 내용이 부실해 보이면 막지 않고 '조금 더 적어 볼래요?'만 권한다 (기준은 BE app/draft_hint.py)
       const hint = serverReview.hint;
       const hintBox = hint && !blocked ? `<div class="draft-hint" role="note">
@@ -3079,16 +3082,23 @@ if (me && authToken()) {
         <ul>${(hint.tips || []).map((tip) => `<li>${escapeText(tip)}</li>`).join("")}</ul>
         <div class="row"><button type="button" class="soft" data-hint-write>본문 더 적기</button><small>그대로 올려도 괜찮아요.</small></div>
       </div>` : "";
-      el("reviewResults").innerHTML = hintBox + (blocked
-        ? `<div class="review-result check-row pending"><p>${escapeText(serverReview.reason || "수정이 필요한 표현이 있어요.")}</p><p>${escapeText(serverReview.suggestion || "")}</p></div>${issueRows}`
-        : `<div class="review-result check-row"><strong><span class="check-icon" aria-hidden="true">✓</span>서버 점검 통과</strong></div>${issueRows}`);
+      const explain = `<div class="review-explain">
+          <p>${escapeText(serverReview.reason || "수정이 필요한 표현이 있어요.")}</p>
+          ${serverReview.suggestion ? `<p>${escapeText(serverReview.suggestion)}</p>` : ""}
+        </div>`;
+      el("reviewResults").innerHTML = hintBox + (issues.length
+        ? guardCard(issues) + explain + fixItems(issues, blocked)
+          + '<p class="fix-footnote">제안을 적용하지 않고 직접 고쳐도, 점검을 다시 통과하면 게시할 수 있어요.</p>'
+        : `<div class="review-result check-row"><strong><span class="check-icon" aria-hidden="true">✓</span>서버 점검 통과</strong></div>`);
+      el("applyAllFixes")?.addEventListener("click", () => applyFixes(issues, "보안관 사자가 모두 고쳤어요. 다시 점검할게요."));
+      for (const button of el("reviewResults").querySelectorAll("[data-fix]")) {
+        button.onclick = () => applyFixes([issues[Number(button.dataset.fix)]], "고쳤어요. 다시 점검할게요.");
+      }
       el("reviewResults").querySelector("[data-hint-write]")?.addEventListener("click", () => {
         const body = el("reviewDraftBody");
         body.focus();
         body.setSelectionRange(body.value.length, body.value.length);
       });
-      showWordGuide(issues);
-      showSecurityGuard(issues);
     } else {
       el("reviewResults").innerHTML = `<p class="review-note">${pendingDraft.private ? "나만보기 글은 검사하지 않아요." : "점검 결과가 없어요."}</p>`;
     }
@@ -3143,6 +3153,7 @@ if (me && authToken()) {
     }
     pendingDraft = p;
     serverReview = null;
+    reviewFixTotal = 0;
     showReviewResults(true);
     resumeDraft = true;
     el("editor").close();
