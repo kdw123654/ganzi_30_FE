@@ -2271,7 +2271,11 @@ body {
   padding: 8px;
   border-radius: 999px;
 }
-.theme-picker .themes button {
+/* :hover/:focus까지 같이 적어야 예전 css(unified-island/village)의 hover width:100% 를 이김 */
+.theme-picker .themes button,
+.theme-picker .themes button:hover,
+.theme-picker .themes button:focus-visible,
+.theme-picker .themes button[aria-pressed="true"] {
   flex: none;
   display: grid;
   place-items: center;
@@ -2305,7 +2309,10 @@ body {
     gap: 5px;
     padding: 6px;
   }
-  .theme-picker .themes button {
+  .theme-picker .themes button,
+  .theme-picker .themes button:hover,
+  .theme-picker .themes button:focus-visible,
+  .theme-picker .themes button[aria-pressed="true"] {
     width: 38px;
     height: 38px;
   }
