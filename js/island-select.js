@@ -56,7 +56,7 @@ function islandSelectRender() {
   islandSelectSubtitle.textContent = '두 섬을 둘러보고, 마음이 가는 곳으로 떠나보세요.';
   islandSelectCard.innerHTML = `
     <img class="island-select-art" src="${islandSelectArt(item)}" alt="${item.name} 미리보기">
-    <img class="island-select-route" src="assets/islands/route-line.png" alt="">
+    <svg class="island-select-route-line" aria-hidden="true"><path></path></svg>
     <img class="island-select-boat" src="assets/islands/route-boat.png" alt="">
     <div class="island-select-copy">
       <h2>${item.name}</h2>
@@ -69,7 +69,40 @@ function islandSelectRender() {
   document.getElementById('island-select-next').disabled = islandSelectIndex === islandSelectItems.length - 1;
   document.getElementById('island-select-enter').onclick = () => islandSelectShowPreview(item);
   islandSelectShowStatus(item);
+  islandSelectDrawRoute();
 }
+
+// 배에서 옆 섬까지 하얀 점선 경로를 화면 위치에 맞춰 그림 (그림 파일을 늘리면 섬에 안 닿아서)
+function islandSelectDrawRoute() {
+  const svg = islandSelectCard.querySelector('.island-select-route-line');
+  const boat = islandSelectCard.querySelector('.island-select-boat');
+  if (!svg || !boat) return;
+  const box = islandSelectCard.getBoundingClientRect();
+  const toRight = islandSelectCard.dataset.kind !== 'job';
+  const edge = getComputedStyle(islandSelectCarousel, toRight ? '::after' : '::before');
+  const w = parseFloat(edge.width), h = parseFloat(edge.height), top = parseFloat(edge.top);
+  const edgeLeft = toRight ? box.width - parseFloat(edge.right) - w : parseFloat(edge.left);
+  if (!w || !h) return;
+  // 옆 섬 그림의 안쪽 물가 (화면 쪽 가장자리, 섬 아래쪽)
+  const end = {
+    x: edgeLeft + w * (toRight ? 0.2 : 0.8),
+    y: top + h * 0.66,
+  };
+  const b = boat.getBoundingClientRect();
+  const start = { x: b.left + b.width / 2 - box.left, y: b.top + b.height * 0.7 - box.top };
+  // 배에서 옆 섬 쪽으로 위로만 완만하게 올라감 (아래로 처지면 안내 글과 겹침)
+  const dx = end.x - start.x;
+  const rise = start.y - end.y;
+  const mid = { x: start.x + dx * 0.55, y: start.y - rise * 0.45 - 22 };
+  const d = [
+    `M ${start.x} ${start.y}`,
+    `C ${start.x + dx * 0.22} ${start.y + 4} ${mid.x - dx * 0.22} ${mid.y + 8} ${mid.x} ${mid.y}`,
+    `S ${end.x - dx * 0.16} ${end.y + 26} ${end.x} ${end.y}`,
+  ].join(' ');
+  svg.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
+  svg.querySelector('path').setAttribute('d', d);
+}
+window.addEventListener('resize', () => islandSelectDrawRoute());
 
 // 섬 온도·접속 인원·이번 주 고민 수를 보여 줘서 들어가기 전부터 섬 분위기를 알 수 있게
 const islandSelectStatusCache = new Map();
@@ -91,11 +124,34 @@ async function islandSelectShowStatus(item) {
   }
 }
 
+// 화살표로 넘길 때: 지금 섬이 경로 방향으로 밀려나고, 다음 섬이 반대쪽에서 들어옴
+let islandSelectMoving = false;
 function islandSelectMove(delta) {
   const next = islandSelectIndex + delta;
-  if (next < 0 || next >= islandSelectItems.length) return;
-  islandSelectIndex = next;
-  islandSelectRender();
+  if (next < 0 || next >= islandSelectItems.length || islandSelectMoving) return;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const out = delta > 0 ? 'is-out-left' : 'is-out-right';
+  const into = delta > 0 ? 'is-in-right' : 'is-in-left';
+  if (reduce) {
+    islandSelectIndex = next;
+    islandSelectRender();
+    return;
+  }
+  islandSelectMoving = true;
+  islandSelectCarousel.classList.add('is-moving');
+  islandSelectCard.classList.add(out);
+  setTimeout(() => {
+    islandSelectIndex = next;
+    islandSelectCard.classList.remove(out);
+    islandSelectCard.classList.add(into);
+    islandSelectRender();
+    islandSelectCard.getBoundingClientRect(); // 들어오기 시작 위치를 먼저 적용
+    islandSelectCard.classList.remove(into);
+    setTimeout(() => {
+      islandSelectCarousel.classList.remove('is-moving');
+      islandSelectMoving = false;
+    }, 420);
+  }, 320);
 }
 
 document.getElementById('island-select-prev').onclick = () => islandSelectMove(-1);

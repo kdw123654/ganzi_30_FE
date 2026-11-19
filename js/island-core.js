@@ -1371,20 +1371,25 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // 상담 안내(글·댓글 작성 응답의 crisis_support) 표시
 function showCrisisSupport(support) {
   if (!support) return;
-  alert(
-    [
-      support.message,
-      ...(support.resources || []).map((resource) =>
-        typeof resource === "string"
-          ? resource
-          : [resource.name, resource.phone, resource.hours]
-              .filter(Boolean)
-              .join(" · "),
-      ),
-    ]
-      .filter(Boolean)
-      .join("\n\n"),
+  const resources = (support.resources || []).map((r) =>
+    typeof r === "string"
+      ? `<span class="keeper-call">${escapeText(r)}</span>`
+      : `<a class="keeper-call" href="tel:${escapeText(r.phone)}">${escapeText(r.name)} <b>${escapeText(r.phone)}</b> <small>${escapeText(r.hours || "")}</small></a>`,
   );
+  // alert 대신 접고 펼치는 카드 (처음엔 접힌 상태, 눌러야 상담 전화가 보임)
+  document.getElementById("crisisSupport")?.remove();
+  const box = document.createElement("aside");
+  box.id = "crisisSupport";
+  box.className = "crisis-support keeper-crisis";
+  box.setAttribute("role", "status");
+  box.innerHTML = `
+    <details>
+      <summary>${escapeText(support.message || "많이 힘들 땐 상담 전화가 있어요.")} <small>상담 전화 보기</small></summary>
+      <div class="row">${resources.join("")}</div>
+    </details>
+    <button type="button" class="crisis-close" aria-label="상담 안내 닫기">×</button>`;
+  box.querySelector(".crisis-close").addEventListener("click", () => box.remove());
+  document.body.append(box);
 }
 
 const commentName = (comment) =>
@@ -1673,14 +1678,14 @@ async function showPost(id, open = true) {
             ${post.visibility === "private" ? "나만보기" : escapeText(ways[way] || "")}
           </small>
           <span class="row post-foot-actions">
-            <button
+            ${post.visibility === "private" ? "" : `<button
               type="button"
               class="soft reaction-btn"
               id="reactionButton"
               aria-pressed="${post.reacted_by_me}"
             >
               ${post.reacted_by_me ? "♥" : "♡"} 공감 ${post.reaction_count}
-            </button>
+            </button>`}
             ${post.is_mine ? `
               <button type="button" class="link-btn quiet" id="editServerPost">수정</button>
               <button type="button" class="link-btn quiet" id="deleteServerPost">삭제</button>
@@ -1793,7 +1798,7 @@ async function showPost(id, open = true) {
       el("appealPost").onclick = () => appeal("post", post.id, el("appealPost"));
     }
 
-    el("reactionButton").onclick = async () => {
+    if (el("reactionButton")) el("reactionButton").onclick = async () => {
       const button = el("reactionButton");
       if (button.disabled) return;
 
@@ -2096,11 +2101,11 @@ async function loadNotifications() {
       const { text, name } = notificationText(notification);
       return `
       <button
-        class="alert-row"
+        class="alert-row ${notification.is_read ? "is-read" : "is-unread"}"
         data-notification-post="${notification.post_id}"
       >
         <span>
-          <strong>${notification.is_read ? "" : "● "}${escapeText(notification.post_title)}</strong>
+          <strong>${notification.is_read ? "" : `<em class="alert-new">새 알림</em>`}${escapeText(notification.post_title)}</strong>
           <small>
             ${escapeText(text)}${name ? ` · ${escapeText(name)}` : ""}
           </small>

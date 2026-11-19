@@ -2798,3 +2798,124 @@ body {
     max-height: calc(100dvh - 20px) !important;
   }
 }
+
+/* ───────── 11/20: 모닥불 후버 때 불 뒤에 흰 배경 안 보이게 ───────── */
+.marker.campfire:hover .campfire-flame,
+.marker.campfire:focus-visible .campfire-flame {
+  background: transparent;
+}
+
+/* ───────── 11/20: 이웃의 마음 필터 버튼 — 답을 기다리는 고민 · 초기화 같은 크기로 조금 작게 ───────── */
+.feed-filters button {
+  flex: 0 0 auto;
+  width: 132px;
+  min-height: 34px;
+  height: 34px;
+  padding: 0 8px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+#feedPanel .feed-filters #reset {
+  margin: 0;
+}
+
+/* ───────── 11/20: 위기 상담 안내 — alert 대신 접고 펼치는 카드 ───────── */
+.crisis-support {
+  position: fixed;
+  left: 50%;
+  bottom: 72px;
+  z-index: 40;
+  transform: translateX(-50%);
+  width: min(420px, calc(100% - 32px));
+  padding: 12px 40px 12px 14px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid #f1d0c8;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+.crisis-support summary {
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #3a2a26;
+}
+.crisis-support summary small {
+  margin-left: 4px;
+  color: #b0473a;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.crisis-support details[open] summary { margin-bottom: 8px; }
+.crisis-support .crisis-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #6b7d74;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* ───────── 11/20: 댓글 알림 — 안 읽은 알림과 읽은 알림 구분 ───────── */
+.personal .alert-row.is-unread,
+.alert-row.is-unread {
+  background: #fff;
+  border-left: 4px solid #e2583e;
+  box-shadow: 0 2px 8px rgba(226, 88, 62, 0.15);
+}
+.alert-row.is-unread strong { color: #1f3a2e; }
+.alert-row .alert-new {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #e2583e;
+  color: #fff;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+  vertical-align: 1px;
+}
+/* 읽은 알림: 회색 */
+.personal .alert-row.is-read,
+.alert-row.is-read {
+  background: #eceeed;
+  border-left: 4px solid transparent;
+  box-shadow: none;
+}
+.alert-row.is-read strong { color: #7d8580; font-weight: 600; }
+.alert-row.is-read small,
+.alert-row.is-read > span:last-child { color: #9aa19d; }
+
+/* ───────── 11/20: 나만보기 글 — 창 전체는 스크롤 없이 화면에 맞추고, 온도와의 대화 칸만 스크롤 ───────── */
+#detail[open]:has(#privateChat) {
+  height: min(832px, calc(100dvh - 28px));
+  overflow: hidden;
+}
+#detail[open]:has(#privateChat) #detailBody,
+#detailBody:has(#privateChat) .talk-card,
+#detailBody #privateChat {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+#detailBody #privateChat {
+  display: flex;
+  flex-direction: column;
+}
+#detailBody #privateChat .chat-log {
+  flex: 1 1 auto;
+  min-height: 120px;
+  max-height: none;
+  align-content: start;
+}
+#detailBody #privateChat #chatForm,
+#detailBody #privateChat .chat-remaining {
+  flex: none;
+}

@@ -1,3 +1,9 @@
+@font-face {
+  font-family: "Hakgyoansim Dunggeunmiso";
+  src: url("../assets/fonts/HakgyoansimDunggeunmiso-B.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
 :root {
   font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
   color: #153e3a;
@@ -43,8 +49,10 @@ body {
 }
 .island-select-stage h1 {
   top: 8vh;
-  font-size: clamp(31px, 3vw, 54px);
-  letter-spacing: -0.075em;
+  font-family: "Hakgyoansim Dunggeunmiso", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  font-size: 44px;
+  font-weight: 700;
+  letter-spacing: 0;
 }
 .island-select-stage > p {
   top: 15.8vh;
@@ -509,4 +517,47 @@ body {
   color: #24594f;
   font-size: 14px;
   font-weight: 700;
+}
+
+/* 11/20: 섬 사이 경로 — 배에서 옆 섬 물가까지 하얀 점선으로 이어지게 (js에서 위치 계산) */
+.island-select-route-line {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.island-select-route-line path {
+  fill: none;
+  stroke: #fff6d8;
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dasharray: 1 16;
+  opacity: 0.95;
+}
+/* 안내 글을 경로 아래로 조금 내림 */
+:root {
+  --island-copy-top: 71%;
+}
+
+/* 11/20: 화살표로 넘길 때 부드럽게 */
+.island-select-card {
+  transition: transform 0.36s cubic-bezier(0.22, 0.7, 0.2, 1), opacity 0.32s ease;
+}
+.island-select-card.is-out-left { transform: translateX(-14vw); opacity: 0; }
+.island-select-card.is-out-right { transform: translateX(14vw); opacity: 0; }
+.island-select-card.is-in-right { transform: translateX(14vw); opacity: 0; transition: none; }
+.island-select-card.is-in-left { transform: translateX(-14vw); opacity: 0; transition: none; }
+.island-select-carousel:before,
+.island-select-carousel:after {
+  transition: opacity 0.3s ease;
+}
+.island-select-carousel.is-moving:before,
+.island-select-carousel.is-moving:after {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .island-select-card { transition: none; }
 }
