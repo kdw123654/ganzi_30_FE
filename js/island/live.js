@@ -51,8 +51,8 @@ async function presenceTick() {
 const weatherText = {
   cold: "쌀쌀한 섬이에요. 첫 위로를 건네 볼까요?",
   mild: "섬이 조금씩 따뜻해지고 있어요.",
-  warm: "이웃들의 위로로 섬이 따뜻해요.",
-  hot: "ON-DO 36.5° 달성! 섬이 사람 체온만큼 따뜻해요.",
+  warm: "ON-DO 36.5° 달성! 섬이 사람 체온만큼 따뜻해요.",
+  hot: "38°를 넘었어요! 이웃들의 위로로 모닥불이 활활 타올라요.",
 };
 let lastTempLevel = null;
 async function loadTemperature() {

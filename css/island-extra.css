@@ -2694,10 +2694,10 @@ body {
 }
 /* 크기는 지도(.world) 너비 기준(cqw): 화면이 작아져도 광장 모래밭 밖으로 삐져나오지 않게 */
 .world { container-type: inline-size; }
-.marker.campfire.level-cold .campfire-flame img { width: 3.4cqw; filter: saturate(0.6) brightness(0.92); }
-.marker.campfire.level-mild .campfire-flame img { width: 4.6cqw; }
-.marker.campfire.level-warm .campfire-flame img { width: 6.1cqw; }
-.marker.campfire.level-hot .campfire-flame img { width: 7.5cqw; }
+.marker.campfire.level-cold .campfire-flame img { width: 2.72cqw; filter: saturate(0.6) brightness(0.92); }
+.marker.campfire.level-mild .campfire-flame img { width: 3.68cqw; }
+.marker.campfire.level-warm .campfire-flame img { width: 4.88cqw; }
+.marker.campfire.level-hot .campfire-flame img { width: 6cqw; }
 /* 온도 표시는 불 아래쪽에 겹쳐 둠: 불이 커져도 표시가 아래로 밀려 말풍선과 겹치지 않고, 불 중심이 광장 가운데에 옴 */
 .marker.campfire .campfire-temp { position: absolute; left: 50%; bottom: -4px; transform: translateX(-50%); white-space: nowrap; }
 .marker.campfire.level-cold .campfire-flame { opacity: 0.85; filter: none; }
@@ -2918,7 +2918,7 @@ body {
 #personal .personal-foot .withdraw-btn { font-size: 11px; color: #9aa59d; }
 #personal .personal-foot .withdraw-btn:hover { color: #b3402a; }
 /* 모닥불을 광장 안에서 조금 위로 */
-.marker.campfire { margin-top: -1.3cqw; }
+.marker.campfire { margin-top: -1.04cqw; }
 
 /* ───────── 칭호 아이콘 그림 (assets/titles) ───────── */
 .title-badge { gap: 4px; padding-left: 4px; }
