@@ -2966,3 +2966,5 @@ body {
 
 /* 칭호 도감 카드: 마우스를 올려도 그림·카드가 어두워지지 않게 (village.css의 button:hover 밝기 효과 끔) */
 #personal .title-card:hover { filter: none; }
+/* 얻은 칭호도 그림 뒤 등급 색 원(배경) 없이: .title-card.earned.tier-N .title-icon 보다 우선하도록 :is()로 같은 무게 + 뒤에 둠 */
+#personal .title-card:is(.earned, .locked):is(.tier-1, .tier-2, .tier-3, .tier-4) .title-icon.has-img { background: none; box-shadow: none; border-radius: 0; }
