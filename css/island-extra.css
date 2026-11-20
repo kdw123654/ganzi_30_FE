@@ -2963,3 +2963,6 @@ body {
 }
 .search-map-note span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .search-map-note button { flex: none; min-height: 30px; padding: 4px 12px; font-size: 12.5px; }
+
+/* 칭호 도감 카드: 마우스를 올려도 그림·카드가 어두워지지 않게 (village.css의 button:hover 밝기 효과 끔) */
+#personal .title-card:hover { filter: none; }
