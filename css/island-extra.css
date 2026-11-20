@@ -2956,7 +2956,7 @@ body {
 
 /* 검색 중 지도 안내: 닮은 고민을 쓴 이웃만 보여 주는 중 */
 .search-map-note {
-  position: absolute; left: 50%; bottom: 72px; z-index: 30; transform: translateX(-50%);
+  position: absolute; left: 50%; bottom: 100px; z-index: 30; transform: translateX(-50%);
   display: flex; align-items: center; gap: 10px; max-width: calc(100% - 32px);
   padding: 8px 8px 8px 16px; border-radius: 999px;
   background: #fffdf4f2; color: #24412f; font-size: 13px; box-shadow: 0 4px 14px #18362b33;
