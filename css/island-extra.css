@@ -2919,3 +2919,9 @@ body {
 #detailBody #privateChat .chat-remaining {
   flex: none;
 }
+
+/* 11/20: 유리병 편지 '그 뒤 이야기' 왼쪽 진한 초록 줄 없애기 */
+.bottle-story {
+  border-left: 0;
+  border-radius: 12px;
+}

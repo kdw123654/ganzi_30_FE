@@ -175,7 +175,8 @@ body {
   background: #20584d;
   color: #fff;
   padding: 14px 20px;
-  font-weight: 800;
+  font-size: 24px;
+  font-weight: 600;
   cursor: pointer;
   box-shadow: 0 5px 9px #1a5a4a36;
 }

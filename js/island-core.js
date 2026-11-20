@@ -1227,13 +1227,13 @@ function openBottle() {
           <strong>그 뒤 이야기</strong>
           <p>${escapeText(letter.follow_up)}</p>
         </div>` : ""}
-      <label for="bottleReply">답장을 담아 다시 띄워 보내요</label>
+      <label for="bottleReply">이 고민에 댓글을 남겨요</label>
       <textarea id="bottleReply" maxlength="400" rows="3" placeholder="같은 마음이었던 적이 있다면 한마디 남겨 주세요"></textarea>
       <p class="bottle-error" id="bottleError" role="alert" hidden></p>
       <p class="bottle-next">유리병은 하루에 한 통, 아침 8시에 떠내려와요. 읽고 나면 강물로 돌아가요.</p>
       <div class="row bottle-actions">
-        <button type="button" class="soft" id="bottleOpenPost">글 전체 보기${letter.comment_count ? ` · 위로 ${letter.comment_count}` : ""}</button>
-        <button type="button" id="bottleSend">답장 띄우기</button>
+        <button type="button" class="soft" id="bottleOpenPost">글 전체 보기</button>
+        <button type="button" id="bottleSend">댓글 달기</button>
       </div>
       <button value="close" class="plain bottle-close" aria-label="닫기">닫기</button>
     </form>`;
@@ -1281,7 +1281,7 @@ function openBottle() {
     event.target.disabled = true;
     try {
       await api(`/posts/${letter.post_id}/comments`, { method: "POST", body: { content: text } });
-      done("답장을 담아 유리병을 다시 띄웠어요. 글쓴이에게 닿을 거예요");
+      done("댓글을 남겼어요. 글쓴이에게 닿을 거예요");
     } catch (e) {
       const suggestion = e.detail?.issues?.[0]?.guide || e.detail?.suggestion;
       error.textContent = suggestion ? `${e.message} ${suggestion}` : e.message;
@@ -2097,7 +2097,9 @@ async function loadNotifications() {
     el("badge").textContent = serverUnreadCount;
     el("badge").hidden = serverUnreadCount === 0;
 
-    container.innerHTML = result.notifications.map(notification => {
+    // 안 읽은 알림을 맨 위로 (같은 묶음 안에서는 원래 순서인 최신순 유지)
+    const sortedNotifications = [...result.notifications].sort((a, b) => Number(a.is_read) - Number(b.is_read));
+    container.innerHTML = sortedNotifications.map(notification => {
       const { text, name } = notificationText(notification);
       return `
       <button
