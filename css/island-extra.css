@@ -2567,8 +2567,13 @@ body {
 }
 
 /* ───────── 11/20 기획 피드백: AI 점검 결과 (피그마 AiSuggestionCard) ───────── */
+.review-side > section {
+  box-sizing: border-box;
+  border: 1px solid #e2e8ef;
+  box-shadow: none;
+}
 #reviewResults {
-  background: #fff;
+  background: transparent;
 }
 #reviewResults .guard-card,
 #reviewResults .review-explain,
