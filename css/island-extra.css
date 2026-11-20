@@ -546,24 +546,6 @@
   white-space: nowrap;
 }
 
-/* 발자국: 최근 다녀간 이웃의 흔적 (점점 옅어짐) */
-.map .footprint {
-  z-index: 1;
-  display: flex;
-  gap: 5px;
-  pointer-events: none;
-  transform: translate(-50%, -50%) rotate(-18deg);
-}
-.map .footprint i {
-  display: block;
-  width: 7px;
-  height: 10px;
-  border-radius: 50% 50% 45% 45%;
-  background: #5b4a32;
-}
-.map .footprint i:nth-child(2) { translate: 0 -6px; }
-.map .footprint i:nth-child(3) { translate: 0 -12px; }
-
 /* 유리병 편지 */
 .map .bottle {
   z-index: 5;

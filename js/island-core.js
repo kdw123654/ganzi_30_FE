@@ -443,14 +443,11 @@ function updateIslandCounts() {
   const online = onlineNeighbors.size;
   document.querySelectorAll(".island-counts").forEach(element => {
     // 항목마다 span으로 나눠, 좁은 화면에서는 항목 단위로 줄을 바꾼다 (말줄임으로 잘리지 않게)
-    const items = [
-      `총 이웃 ${Number(serverNeighbors.length)}명`,
-      `오늘 다녀간 이웃 ${Number(footprintVisitors || 0)}명`,
-    ];
+    const items = [`총 이웃 ${Number(serverNeighbors.length)}명`];
     element.innerHTML = items.map(text => `<span>${escapeText(text)}</span>`).join("");
     element.title = online
       ? `공개 글을 작성한 이웃 · 지금 접속 ${Number(online) + 1}명`
-      : "공개 글을 작성한 이웃과 오늘 섬에 들른 이웃";
+      : "공개 글을 작성한 이웃";
   });
 }
 
@@ -486,7 +483,7 @@ const characterImg = (author, alt = "") => `
 function renderMarkers() {
   const mine = serverNeighbors.find(neighbor => neighbor.is_me);
   const others = serverNeighbors.filter(neighbor => !neighbor.is_me);
-  const items = [...footprintItems(), ...bottleItem(), ...keeperItem()];
+  const items = [...bottleItem(), ...keeperItem()];
 
   // 섬 중앙 모닥불 (섬 온도)
   if (islandTemp) {
@@ -811,43 +808,6 @@ async function loadTemperature() {
   } catch (error) {
     if (error.status === 404) islandTemp = null; // 이전 서버
   }
-}
-
-// ── 발자국: 최근 하루 동안 섬을 다녀간 이웃의 흔적. 지금 아무도 없어도 섬이 비어 보이지 않게 ──
-let footprints = [];
-let footprintVisitors = 0;
-async function loadFootprints() {
-  if (!Number.isInteger(islandId)) return;
-  try {
-    const result = await api(`/islands/${islandId}/footprints`);
-    footprints = result.footprints;
-    footprintVisitors = result.visitors;
-    updateIslandCounts();
-    renderMarkers();
-  } catch {
-    footprints = []; // 이전 서버면 조용히 넘어감
-  }
-}
-
-function footprintItems() {
-  const shown = new Set([...onlineNeighbors.keys(), ...resonance.keys()]);
-  return footprints
-    .filter((mark) => !shown.has(mark.user_id))
-    .map((mark) => {
-      const base = mark.x != null ? { x: mark.x, y: mark.y } : spotFor(mark.user_id);
-      // 글 자리와 겹치지 않게 살짝 비켜서, 걸어온 방향으로 찍음
-      const pos = insideIsland({ x: base.x - 3.5, y: base.y + 4 });
-      const fade = Math.max(0.25, 0.8 - mark.hours_ago / 30);
-      return {
-        key: "foot-" + mark.user_id,
-        ...pos,
-        html: `
-          <div class="marker footprint" style="opacity:${fade.toFixed(2)}" aria-hidden="true"
-            title="${mark.hours_ago < 1 ? "조금 전" : Math.round(mark.hours_ago) + "시간 전"}에 다녀간 이웃">
-            <i></i><i></i><i></i>
-          </div>`,
-      };
-    });
 }
 
 // ── 유리병 편지: 다른 섬에서 떠내려온 고민과, 그 뒤 글쓴이가 남긴 이야기 ──
@@ -3570,10 +3530,8 @@ if (me && authToken()) {
   updateBadge();
   renderFeed();
   loadNeighbors();
-  loadFootprints();
   loadBottle();
   loadKeeper();
-  setInterval(loadFootprints, 60 * 1000); // 새로 다녀간 이웃 반영
 }
 
 // ── 나만보기 고민: 온도와 둘만의 대화 ──
