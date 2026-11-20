@@ -90,6 +90,23 @@ async function waitForAiReply(postId, baseline) {
   }
 }
 
+// 댓글이 서버 점검(422 NEED_EDIT)에 걸리면: 입력칸 위에 사자 보안관 카드로 이유와 고칠 방향을 보여 줌
+function showCommentGuard(form, detail) {
+  if (form.previousElementSibling?.classList.contains("comment-guard")) form.previousElementSibling.remove();
+  form.insertAdjacentHTML(
+    "beforebegin",
+    `<div class="guard-card lion-guide comment-guard" role="alert">
+      <img src="${img(CHARACTER_KEYS.indexOf("lion"))}" alt="ON-DO 보안관 사자">
+      <div>
+        <strong>ON-DO 보안관 · 사자</strong>
+        <p>${escapeText(detail.reason || "상대가 상처받을 수 있는 표현이 있어요.")}</p>
+        ${detail.suggestion ? `<p class="guard-preview">${escapeText(detail.suggestion)}</p>` : ""}
+      </div>
+    </div>`,
+  );
+  form.querySelector("input, textarea")?.focus();
+}
+
 async function showPost(id, open = true) {
   const requestId = ++detailRequestId;
 
@@ -443,17 +460,21 @@ async function showPost(id, open = true) {
           toast("이제 이웃들이 함께할 거예요");
         }
       } catch (error) {
-        alert(
-          [
-            error.message,
-            error.detail?.suggestion
-          ].filter(Boolean).join("\n\n")
-        );
+        if (error.status === 422 && error.detail?.code === "NEED_EDIT") {
+          // 브라우저 경고창 대신 입력칸 바로 위에 사자 보안관이 나와서 알려 줌 (화면을 막지 않음)
+          showCommentGuard(form, error.detail);
+        } else {
+          toast(error.message);
+        }
       } finally {
         button.disabled = false;
         button.textContent = "남기기";
       }
     };
+    // 다시 고쳐 쓰기 시작하면 안내를 치움
+    input.addEventListener("input", () => {
+      if (form.previousElementSibling?.classList.contains("comment-guard")) form.previousElementSibling.remove();
+    });
 
     return post;
   } catch (error) {
