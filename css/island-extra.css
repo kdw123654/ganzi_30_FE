@@ -2968,3 +2968,63 @@ body {
 #personal .title-card:hover { filter: none; }
 /* 얻은 칭호도 그림 뒤 등급 색 원(배경) 없이: .title-card.earned.tier-N .title-icon 보다 우선하도록 :is()로 같은 무게 + 뒤에 둠 */
 #personal .title-card:is(.earned, .locked):is(.tier-1, .tier-2, .tier-3, .tier-4) .title-icon.has-img { background: none; box-shadow: none; border-radius: 0; }
+
+/* ───────── 칭호 도감 C버전(고급 + 섬 테마): 등급별 하늘 풍경 + 금속 테두리 메달 ─────────
+   새싹 = 새벽, 따뜻한 = 노을, 빛나는 = 맑은 낮, 전설 = 별이 뜬 밤. 아직 못 얻은 칭호는 흐린 회색 하늘 */
+#personal .title-card:is(.earned, .locked).tier-1 { --metal: #f3c6a0; --sky: linear-gradient(170deg, #7fb6d6, #f4c3a1 85%); }
+#personal .title-card:is(.earned, .locked).tier-2 { --metal: #ffe1b0; --sky: linear-gradient(170deg, #ffb26b, #e9735a 85%); }
+#personal .title-card:is(.earned, .locked).tier-3 { --metal: #ffe08a; --sky: linear-gradient(170deg, #3f8fc9, #6dd0c8 85%); }
+#personal .title-card:is(.earned, .locked).tier-4 {
+  --metal: #d9ecff;
+  --sky: radial-gradient(circle at 80% 15%, #ffffff55 0 2px, transparent 3px),
+    radial-gradient(circle at 30% 25%, #ffffff66 0 1.5px, transparent 2.5px),
+    radial-gradient(circle at 60% 40%, #ffffff44 0 1px, transparent 2px),
+    linear-gradient(170deg, #1d2c55, #3b2f6b 85%);
+}
+#personal .title-card:is(.earned, .locked):is(.tier-1, .tier-2, .tier-3, .tier-4) {
+  position: relative;
+  overflow: hidden;
+  padding-top: 12px;
+  color: #fff;
+  background: var(--sky);
+  border: 1.5px solid var(--metal);
+  box-shadow: 0 4px 12px #18362b26;
+}
+/* 아래쪽 둥근 언덕 */
+#personal .title-card:is(.earned, .locked)::after {
+  content: "";
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  bottom: -36px;
+  height: 70px;
+  border-radius: 50%;
+  background: #ffffff1f;
+  pointer-events: none;
+}
+#personal .title-book .title-card.locked { --sky: linear-gradient(170deg, #9aa7a1, #c9cfc9); --metal: #e3e7e3; }
+#personal .title-book .title-card strong,
+#personal .title-book .title-card.locked strong { position: relative; z-index: 1; color: #fff; text-shadow: 0 1px 2px #00000040; }
+#personal .title-book .title-card small { position: relative; z-index: 1; color: #ffffffe0; }
+#personal .title-book .title-card .title-count { color: #fff; font-weight: 700; }
+#personal .title-book .title-progress { position: relative; z-index: 1; background: #ffffff40; }
+#personal .title-book .title-progress i { background: #fff; }
+#personal .title-book .title-current { position: relative; z-index: 1; background: #ffffffe6; color: #213b30; }
+#personal .title-book .title-card[aria-pressed="true"] { outline: 3px solid #fff; outline-offset: -6px; }
+/* 메달: 흰 원 + 등급 금속 테두리, 안에 칭호 그림 */
+#personal .title-card:is(.earned, .locked):is(.tier-1, .tier-2, .tier-3, .tier-4) .title-icon.has-img {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  margin-bottom: 4px;
+  border-radius: 50%;
+  background: #ffffffd9;
+  box-shadow: 0 0 0 3px var(--metal), 0 6px 14px #00000033;
+  filter: none;
+}
+#personal .title-book .title-card .title-icon-img { width: 40px; height: 40px; object-fit: contain; }
+#personal .title-book .title-card .title-icon-img.is-emoji { display: grid; place-items: center; font-size: 28px; line-height: 1; }
+#personal .title-book .title-card.locked .title-icon.has-img { opacity: 0.75; }

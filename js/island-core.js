@@ -2384,7 +2384,7 @@ async function loadTitleBook(data = null) {
                 data-title-key="${escapeText(t.key)}" ${t.earned ? "" : "disabled"}
                 aria-pressed="${book.current?.key === t.key}"
                 aria-label="${escapeText(t.name)}${t.earned ? " (얻음, 누르면 대표 칭호로)" : ` (${t.progress}/${t.need})`}">
-                <span class="title-icon${TITLE_ICON_KEYS.has(t.key) ? " has-img" : ""}" aria-hidden="true">${TITLE_ICON_KEYS.has(t.key) ? titleIcon(t, "title-icon-img") : ""}</span>
+                <span class="title-icon has-img" aria-hidden="true">${titleIcon(t, "title-icon-img")}</span>
                 <strong>${escapeText(t.name)}</strong>
                 <small>${escapeText(t.desc)}</small>
                 ${t.earned
