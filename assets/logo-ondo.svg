@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="4 2 1018 282" role="img" aria-label="ON-DO">
+  <title>ON-DO</title>
+  <defs>
+    <!-- 온도계 관이 지나가는 자리만큼 첫 O의 윗부분을 뚫는다 -->
+    <mask id="tube-hole" maskUnits="userSpaceOnUse" x="0" y="0" width="1000" height="300">
+      <rect x="0" y="0" width="1000" height="300" fill="#fff"/>
+      <rect x="94" y="0" width="40" height="140" fill="#000"/>
+    </mask>
+  </defs>
+  <g fill="none" stroke="#0e3633" stroke-linecap="round" stroke-linejoin="round">
+    <!-- 첫 글자 O: 두꺼운 고리 -->
+    <circle cx="112" cy="175" r="76" stroke-width="48" mask="url(#tube-hole)"/>
+    <!-- 온도계 관 (아래는 고리 안으로 이어짐) -->
+    <path d="M88 128V42a26 26 0 0 1 52 0v86" stroke-width="12" stroke-linecap="butt"/>
+    <!-- 눈금 -->
+    <path d="M113 40v26M113 42h13M113 54h13M113 66h13" stroke-width="6"/>
+    <!-- N -->
+    <path d="M252 248V104l124 144V104" stroke-width="48"/>
+    <!-- - -->
+    <path d="M445 172h110" stroke-width="46"/>
+    <!-- D -->
+    <path d="M624 102h79a73 73 0 0 1 0 146h-79z" stroke-width="48"/>
+    <!-- 마지막 O -->
+    <circle cx="919" cy="175" r="73" stroke-width="48"/>
+  </g>
+  <!-- 수은 기둥과 구 -->
+  <path d="M113 86v86" stroke="#ff6d40" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="113" cy="172" r="36" fill="#ff6d40"/>
+</svg>

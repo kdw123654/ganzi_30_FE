@@ -1135,3 +1135,9 @@ body:has(#home:not([hidden])) .site-brand {
     font-size: 14px;
   }
 }
+/* 온도계 로고 (글자 대신 이미지) */
+.site-brand img {
+  display: block;
+  height: clamp(24px, 2vw, 32px);
+  width: auto;
+}

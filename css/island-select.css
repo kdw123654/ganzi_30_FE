@@ -562,3 +562,10 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .island-select-card { transition: none; }
 }
+
+/* 온도계 로고 (글자 대신 이미지) */
+.island-select-brand img {
+  display: block;
+  height: clamp(26px, 2.2vw, 34px);
+  width: auto;
+}
