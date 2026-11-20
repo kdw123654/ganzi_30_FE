@@ -2322,11 +2322,34 @@ characterButton.onclick = () => {
   location.href = "index.html#edit-character";
 };
 
-// 아래 줄: 왼쪽에 작은 글자 링크(캐릭터 수정 · 차단한 이용자), 오른쪽 끝에 로그아웃
+// 탈퇴: 서버(DELETE /auth/me)가 이메일·닉네임을 지우고 나만보기 글·공감·알림·차단을 삭제.
+// 공개 글과 댓글은 대화 흐름이 끊기지 않게 "떠난 이용자"로 남는다
+const withdrawButton = document.createElement("button");
+withdrawButton.type = "button";
+withdrawButton.className = "link-btn quiet withdraw-btn";
+withdrawButton.textContent = "탈퇴하기";
+withdrawButton.onclick = async () => {
+  const ok = confirm(
+    "정말 탈퇴할까요?\n\n· 이메일·닉네임이 지워지고 되돌릴 수 없어요.\n· 나만보기 고민과 알림은 삭제돼요.\n· 공개 고민과 댓글은 '떠난 이용자'로 남아요.",
+  );
+  if (!ok) return;
+  withdrawButton.disabled = true;
+  try {
+    await api("/auth/me", { method: "DELETE" });
+    clearAuth();
+    alert("탈퇴했어요. 그동안 함께해 주셔서 고마워요.");
+    location.replace("index.html");
+  } catch (error) {
+    withdrawButton.disabled = false;
+    toast(error.message);
+  }
+};
+
+// 아래 줄: 왼쪽에 작은 글자 링크(캐릭터 수정 · 차단한 이용자 · 탈퇴하기), 오른쪽 끝에 로그아웃
 const foot = document.createElement("div");
 foot.className = "personal-foot";
 const links = document.createElement("span");
-links.append(characterButton, blocksButton);
+links.append(characterButton, blocksButton, withdrawButton);
 foot.append(links, logoutButton);
 section.append(foot);
 if (!detail && tab === "comments") {

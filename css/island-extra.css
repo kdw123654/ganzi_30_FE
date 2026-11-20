@@ -2929,3 +2929,9 @@ body {
   border-left: 0;
   border-radius: 12px;
 }
+
+/* 탈퇴하기: 링크 중 가장 작고 옅게 (실수로 누르지 않게) */
+#personal .personal-foot .withdraw-btn { font-size: 11px; color: #9aa59d; }
+#personal .personal-foot .withdraw-btn:hover { color: #b3402a; }
+/* 모닥불을 광장 안에서 조금 위로 */
+.marker.campfire { margin-top: -1.3cqw; }
