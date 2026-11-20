@@ -54,7 +54,24 @@
 | `island-select.html`, `js/island-select.js` | 섬 선택 |
 | `village.html`, `js/village.js` | 직무섬 화면과 설정 |
 | `unified-island.html`, `js/unified-island.js` | 통합섬 화면과 설정 |
-| `js/island-core.js` | 두 섬의 공통 동작: 지도, 피드, 글 상세·댓글·답글, 알림, 마이페이지, 글쓰기 |
+| `js/island/*.js` | 두 섬의 공통 동작 (기존 island-core.js를 기능별로 분리, HTML의 로드 순서 유지 필요) |
+| `js/island/base.js` | 공통 유틸 · 상수 · 저장 상태 · 토스트 |
+| `js/island/theme.js` | 시간대별 배경 테마 |
+| `js/island/feed.js` | 고민 피드 목록 |
+| `js/island/map.js` | 지도: 이웃 배치 · 마커 · 이름표/칭호 배지 · 검색 필터 · 처음 안내 |
+| `js/island/live.js` | 공명 · 실시간 접속 · 섬 온도(모닥불) |
+| `js/island/bottle.js` | 유리병 편지 |
+| `js/island/keeper.js` | 섬지기 |
+| `js/island/insights.js` | 섬 고민 리포트 · 닮은 고민 묶음 |
+| `js/island/movement.js` | 방향키(WASD) 캐릭터 이동 |
+| `js/island/comments.js` | 댓글 렌더링 · 신고 · 이의제기 |
+| `js/island/post-detail.js` | 고민 상세 창 · 비슷한 고민 · AI 이어 답글 |
+| `js/island/notifications.js` | 알림 배지 · 알림 목록 |
+| `js/island/mypage.js` | 마이페이지: 내 글/댓글 · 차단 목록 · 프로필 · 칭호 도감 · 설정 · 탈퇴 |
+| `js/island/editor.js` | 글쓰기 창 · 주제 선택 |
+| `js/island/private-chat.js` | 나만보기 고민: 온도와 둘만의 대화 |
+| `js/island/ambient.js` | 살아 있는 섬 연출 |
+| `js/island/init.js` | 초기화 · 이벤트 연결 (반드시 마지막에 로드) |
 | `js/api.js` | API 주소와 요청·에러 처리 |
 | `js/review.js` | 게시 전 점검 브라우저 규칙 |
 | `css/` | 화면별 스타일 (`island-extra.css`는 두 섬 공통) |
