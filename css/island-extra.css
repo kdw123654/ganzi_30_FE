@@ -2696,7 +2696,7 @@ body {
   font-size: 11px;
 }
 
-/* ───────── 11/20 모닥불: 피그마 그림 3단계, 온도별 크기 확실히 다르게 ───────── */
+/* ───────── 11/20 모닥불: 피그마 그림 3단계, 온도별 크기 확실히 다르게 (전체 25% 키움) ───────── */
 .marker.campfire .campfire-flame {
   display: grid;
   place-items: end center;
@@ -2708,10 +2708,10 @@ body {
   height: auto;
   transition: width 0.6s ease;
 }
-.marker.campfire.level-cold .campfire-flame img { width: 38px; filter: saturate(0.6) brightness(0.92); }
-.marker.campfire.level-mild .campfire-flame img { width: 54px; }
-.marker.campfire.level-warm .campfire-flame img { width: 76px; }
-.marker.campfire.level-hot .campfire-flame img { width: 104px; }
+.marker.campfire.level-cold .campfire-flame img { width: 48px; filter: saturate(0.6) brightness(0.92); }
+.marker.campfire.level-mild .campfire-flame img { width: 68px; }
+.marker.campfire.level-warm .campfire-flame img { width: 95px; }
+.marker.campfire.level-hot .campfire-flame img { width: 130px; }
 .marker.campfire.level-cold .campfire-flame { opacity: 0.85; filter: none; }
 .marker.campfire.level-hot .campfire-flame { filter: drop-shadow(0 0 18px rgba(255, 110, 30, 0.75)); }
 
