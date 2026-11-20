@@ -254,7 +254,7 @@ function worryCard(post, { unread = false } = {}) {
     <button type="button" class="card worry-card" data-post="${post.id}">
       <small class="mode">${escapeText([mode, new Date(post.created_at).toLocaleString("ko-KR")].filter(Boolean).join(" · "))}</small>
       <strong>${unread ? '<i class="unread-dot" aria-label="새 댓글"></i>' : ""}${post.waiting ? '<span class="waiting-badge">답을 기다려요</span>' : ""}${escapeText(post.title)}</strong>
-      <small class="card-author">${escapeText(post.author?.nickname || "떠난 이용자")} ${(post.author?.title?.tier || 0) >= 3 ? titleBadge(post.author.title) : ""}</small>
+      <small class="card-author">${escapeText(post.author?.nickname || "떠난 이용자")} ${titleBadge(post.author?.title)}</small>
       <small class="card-meta">${escapeText(post.topic)} · 답글 ${Number(post.comment_count) || 0}</small>
     </button>`;
 }
@@ -458,9 +458,20 @@ const personaChip = (character) => {
   return key ? `<span class="persona-badge persona-${key}">${escapeText(PERSONAS[key].label)}</span>` : "";
 };
 
+// 칭호 아이콘 그림(assets/titles/키.png). 그림이 없는 칭호(섬의 등불·섬의 등대)는 서버가 준 이모지를 씀
+const TITLE_ICON_KEYS = new Set([
+  "first_post", "sprout", "traveler", "kind", "heart_rich", "honest",
+  "storyteller", "first_comfort", "guide", "campfire", "shining",
+]);
+const titleIcon = (title, cls = "title-badge-icon") =>
+  TITLE_ICON_KEYS.has(title?.key)
+    ? `<img class="${cls}" src="assets/titles/${title.key}.png" alt="" aria-hidden="true">`
+    : `<span class="${cls} is-emoji" aria-hidden="true">${escapeText(title?.icon || "")}</span>`;
+
+// compact(지도 이름표): 아이콘만. 그 외(글 목록·댓글·글 상세·칭호 도감): 아이콘 + 칭호 이름 글자
 const titleBadge = (title, { compact = false } = {}) =>
   title
-    ? `<span class="title-badge tier-${Number(title.tier)}" title="${escapeText(title.tier_name)} 칭호 · ${escapeText(title.desc)}">${compact ? escapeText(title.icon) : escapeText(title.name)}</span>`
+    ? `<span class="title-badge tier-${Number(title.tier)}${compact ? " compact" : ""}" title="${escapeText(title.name)} · ${escapeText(title.tier_name)} 칭호 · ${escapeText(title.desc)}">${titleIcon(title)}${compact ? `<span class="sr-only">${escapeText(title.name)}</span>` : `<span class="title-badge-name">${escapeText(title.name)}</span>`}</span>`
     : "";
 
 // 실시간 접속 정보에는 칭호가 없으니, 이웃 목록에서 같은 사람의 칭호를 찾아 씀
@@ -2350,7 +2361,7 @@ async function loadTitleBook(data = null) {
                 data-title-key="${escapeText(t.key)}" ${t.earned ? "" : "disabled"}
                 aria-pressed="${book.current?.key === t.key}"
                 aria-label="${escapeText(t.name)}${t.earned ? " (얻음, 누르면 대표 칭호로)" : ` (${t.progress}/${t.need})`}">
-                <span class="title-icon" aria-hidden="true"></span>
+                <span class="title-icon${TITLE_ICON_KEYS.has(t.key) ? " has-img" : ""}" aria-hidden="true">${TITLE_ICON_KEYS.has(t.key) ? titleIcon(t, "title-icon-img") : ""}</span>
                 <strong>${escapeText(t.name)}</strong>
                 <small>${escapeText(t.desc)}</small>
                 ${t.earned

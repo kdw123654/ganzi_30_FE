@@ -2917,3 +2917,26 @@ body {
 #personal .personal-foot .withdraw-btn:hover { color: #b3402a; }
 /* 모닥불을 광장 안에서 조금 위로 */
 .marker.campfire { margin-top: -1.3cqw; }
+
+/* ───────── 칭호 아이콘 그림 (assets/titles) ───────── */
+.title-badge { gap: 4px; padding-left: 4px; }
+.title-badge-icon { width: 16px; height: 16px; flex: none; object-fit: contain; }
+.title-badge-icon.is-emoji { width: auto; height: auto; font-size: 12px; line-height: 1; }
+/* 지도 이름표: 그림만 작게 (배경 없이) */
+.title-badge.compact { padding: 0; margin-left: 2px; background: none; border: 0; box-shadow: none; }
+.title-badge.compact::after { display: none; }
+.title-badge.compact .title-badge-icon { width: 18px; height: 18px; filter: drop-shadow(0 1px 1px #0003); }
+/* 글 목록 카드: 칭호가 길면 말줄임 */
+.card-author .title-badge { max-width: 100%; }
+.title-badge-name { overflow: hidden; text-overflow: ellipsis; }
+/* 칭호 도감 카드: 등급 메달 자리에 그림을 크게 */
+#personal .title-card .title-icon.has-img { width: 52px; height: 52px; border-radius: 0; background: none; }
+#personal .title-card .title-icon.has-img::before { display: none; }
+#personal .title-card .title-icon-img { width: 100%; height: 100%; object-fit: contain; }
+#personal .title-card.earned .title-icon.has-img { filter: drop-shadow(0 3px 4px #0000001f); }
+/* 아직 못 얻은 칭호: 흑백 + 반투명 + 작은 자물쇠 */
+#personal .title-card.locked .title-icon.has-img { position: relative; }
+#personal .title-card.locked .title-icon-img { filter: grayscale(1); opacity: 0.4; }
+#personal .title-card.locked .title-icon.has-img::after {
+  content: "🔒"; position: absolute; right: -4px; bottom: -2px; font-size: 14px; line-height: 1;
+}
