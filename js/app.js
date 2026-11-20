@@ -637,6 +637,12 @@ byId('profile').onsubmit = async event => {
     });
 
     await saveLoginSession(result.access_token, Boolean(draft.remember));
+    // 새로 가입한 사람은 같은 브라우저라도 섬 처음 안내를 다시 보게 ('봤음' 표시 지우기)
+    try {
+      localStorage.removeItem('ondo-world-guide');
+    } catch {
+      // 저장소를 못 쓰면 원래 매번 보여 줌
+    }
 
     draft = {};
     verified = false;
