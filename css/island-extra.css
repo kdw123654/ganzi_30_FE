@@ -1478,7 +1478,9 @@
 }
 .keeper-stats {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  /* 칸 수(섬 소식 2칸, 내 고민과 공명 3칸)만큼 가로를 똑같이 나눔 */
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: 6px;
 }
 .keeper-stat {

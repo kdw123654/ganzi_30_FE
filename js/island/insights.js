@@ -2,7 +2,6 @@
 // (island-core.js에서 분리. 모든 island/*.js는 전역 스코프를 공유하는 일반 스크립트라 HTML의 로드 순서가 중요합니다)
 
 // ───────── 섬 고민 리포트: 쌓인 공개 고민 분석 (GET /islands/{id}/insights) ─────────
-const DAY_SHORT = ["월", "화", "수", "목", "금", "토", "일"];
 const percent = (ratio) => `${Math.round(Number(ratio) * 100)}%`;
 
 async function loadInsights(panel, dialog) {
@@ -49,33 +48,28 @@ function renderInsights(d) {
       <span class="topic-chip">${escapeText(item.topic)}</span>
     </button>` : "";
   const maxTopic = Math.max(...d.topics.map((t) => t.count), 1);
-  const maxDay = Math.max(...d.time.days, 1);
   const me = d.me;
   return `
     <section class="keeper-card report-summary">
-      <h3>한눈에 보기 <small>${reportStamp(d.as_of)} 기준 · 공개 고민 ${Number(d.total_posts)}개 · 이번 주 ${Number(d.week_posts)}개</small></h3>
+      <h3>한눈에 보기 <small>${reportStamp(d.as_of)} 기준</small></h3>
       <ul class="report-lines">${d.headlines.map((line) => `<li>${escapeText(line)}</li>`).join("")}</ul>
     </section>
 
     ${d.warmest || d.waiting ? `<section class="report-picks">${pick(d.warmest, "warm")}${pick(d.waiting, "wait")}</section>` : ""}
 
     <section class="keeper-card">
-      <h3>많이 나눈 고민 <small>주제 ${Number(d.topic_kinds)}가지 중 상위</small></h3>
+      <h3>많이 나눈 고민</h3>
       <ul class="report-bars">${d.topics.map((t) => bar(t, maxTopic)).join("")}</ul>
-      <div class="report-stack" aria-label="큰 분류별 비율">
-        ${d.categories.map((c, i) => `<i class="c${i % 4}" style="flex:${c.count}" title="${escapeText(c.label)} ${percent(c.ratio)}"></i>`).join("")}
-      </div>
-      <p class="report-legend">${d.categories.map((c, i) => `<span><i class="c${i % 4}"></i>${escapeText(c.label)} ${percent(c.ratio)}</span>`).join("")}</p>
     </section>
 
     ${d.groups.length ? `
     <section class="keeper-card">
-      <h3>결이 닮은 고민 묶음 <small>내용이 비슷한 글끼리 AI가 묶었어요</small></h3>
+      <h3>결이 닮은 고민 묶음</h3>
       <div class="report-groups">
         ${d.groups.map((g) => `
           <button type="button" class="report-group" data-report-post="${Number(g.post_id)}">
             <strong>${escapeText(g.title)}</strong>
-            <small>닮은 고민 ${Number(g.size)}개 · 평균 유사도 ${percent(g.similarity)} · ${escapeText(g.topic)}</small>
+            <small>닮은 고민 ${Number(g.size)}개 · ${escapeText(g.topic)}</small>
           </button>`).join("")}
       </div>
     </section>` : ""}
@@ -89,23 +83,10 @@ function renderInsights(d) {
         <div class="keeper-stat"><b>${Number(me.similar_posts)}</b><span>닮은 고민</span></div>
         <div class="keeper-stat"><b>${Number(me.neighbors)}</b><span>공명하는 이웃</span></div>
         <div class="keeper-stat"><b>${percent(me.top_similarity)}</b><span>가장 닮은 정도</span></div>
-      </div>` : `<p class="keeper-note">아직 이 섬엔 꼭 닮은 고민이 없어요. 처음 꺼낸 이야기일 수 있어요. 비슷한 마음의 이웃이 오면 공명으로 알려 드릴게요.</p>`}
-      ${me.topic_rank ? `<p class="keeper-note">내 주제 <b>${escapeText(me.topic)}</b>${topicMark(me.topic)} ${me.topic_rank === 1 ? "이 섬에서 가장 많이 나눈 고민이에요" : `이 섬에서 ${Number(me.topic_rank)}번째로 많아요`}. 혼자만의 고민이 아니에요.</p>` : ""}
+      </div>` : `<p class="keeper-note">아직 꼭 닮은 고민이 없어요.</p>`}
+      ${me.topic_rank ? `<p class="keeper-note">내 주제 <b>${escapeText(me.topic)}</b>${topicMark(me.topic)} ${me.topic_rank === 1 ? "이 섬에서 가장 많이 나눈 고민이에요" : `이 섬에서 ${Number(me.topic_rank)}번째로 많아요`}.</p>` : ""}
       <button type="button" class="soft wide" data-report-post="${Number(me.post_id)}">닮은 고민 보러 가기</button>
     </section>` : ""}
-
-    <section class="keeper-card">
-      <h3>언제 고민이 올라오나 ${d.time.busiest && d.time.busiest_count >= 2 ? `<small>가장 많은 때: ${escapeText(d.time.busiest)}</small>` : ""}</h3>
-      <div class="report-days">
-        ${d.time.days.map((n, i) => `<span><i style="height:${Math.max(6, (n / maxDay) * 100)}%"></i><b>${DAY_SHORT[i]}</b></span>`).join("")}
-      </div>
-      <p class="report-legend">${d.time.slots.map((s) => `<span>${escapeText(s.label)} ${percent(s.ratio)}</span>`).join("")}</p>
-    </section>
-
-    <section class="keeper-card">
-      <h3>바라는 위로</h3>
-      <ul class="report-bars">${d.comfort.map((c) => bar(c, Math.max(...d.comfort.map((x) => x.count), 1))).join("")}</ul>
-    </section>
 
     ${d.jobs.length ? `
     <section class="keeper-card">
@@ -113,9 +94,7 @@ function renderInsights(d) {
       <ul class="report-jobs">
         ${d.jobs.map((j) => `<li class="${j.island_id === d.island_id ? "here" : ""}"><b>${escapeText(j.island_name)}</b><span>${escapeText(j.topic)}</span><small>${percent(j.ratio)}</small></li>`).join("")}
       </ul>
-    </section>` : ""}
-
-    <p class="keeper-foot">리포트는 매일 아침 8시에 새로 정리돼요. 공개 고민만 모아 셌어요.</p>`;
+    </section>` : ""}`;
 }
 
 // 닮은 고민 말풍선을 누르면: 그 묶음에 든 고민 목록
