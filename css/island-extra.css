@@ -3030,3 +3030,40 @@ body {
 #personal .title-book .title-card .title-icon-img { width: 40px; height: 40px; object-fit: contain; }
 #personal .title-book .title-card .title-icon-img.is-emoji { display: grid; place-items: center; font-size: 28px; line-height: 1; }
 #personal .title-book .title-card.locked .title-icon.has-img { opacity: 0.75; }
+
+/* ───────── 11/20: 게시 전 점검 창도 글쓰기 창과 같은 자리·크기로 ─────────
+   마음 내려놓기를 누르면 창이 왼쪽으로 옮겨 가며 크기가 바뀌던 것을, 글쓰기 창(가운데 1040 × 832, 흰 카드)과 똑같이 맞춤.
+   점검 결과 칸은 그 카드 안 오른쪽 열로 들어감 */
+#reviewDialog {
+  inset: 0;
+  margin: auto;
+  width: min(1040px, calc(100% - 32px));
+  height: min(832px, calc(100dvh - 28px));
+  max-height: calc(100dvh - 28px);
+  box-sizing: border-box;
+  padding: clamp(17px, 1.65vw, 29px);
+  background: #fdfdfd;
+  border-radius: 21px;
+  box-shadow: 0 5px 24px #18372e16;
+  overflow: hidden;
+}
+#reviewDialog .review-layout {
+  height: 100%;
+  max-height: none;
+  align-items: stretch;
+  gap: clamp(14px, 2vw, 28px);
+}
+#reviewDialog .review-main {
+  max-height: none;
+  padding: 0 4px 0 0;
+  background: transparent;
+  border-radius: 0;
+}
+#reviewDialog .review-side {
+  max-height: none;
+  align-self: start;
+}
+@media (max-width: 1000px) {
+  #reviewDialog { overflow: auto; }
+  #reviewDialog .review-layout { height: auto; }
+}
