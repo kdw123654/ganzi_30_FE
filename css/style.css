@@ -1141,3 +1141,11 @@ body:has(#home:not([hidden])) .site-brand {
   height: clamp(24px, 2vw, 32px);
   width: auto;
 }
+
+/* 캐릭터 선택 제목 안의 로고: 글자 높이에 맞춤 */
+.inline-logo {
+  height: 1.05em;
+  width: auto;
+  vertical-align: -0.12em;
+  margin-right: 0.08em;
+}
