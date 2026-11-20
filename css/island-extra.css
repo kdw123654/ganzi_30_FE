@@ -2696,7 +2696,7 @@ body {
   font-size: 11px;
 }
 
-/* ───────── 11/20 모닥불: 피그마 그림 3단계, 온도별 크기 확실히 다르게 (전체 25% 키움) ───────── */
+/* ───────── 11/20 모닥불: 피그마 그림 3단계, 온도별 크기 확실히 다르게 ───────── */
 .marker.campfire .campfire-flame {
   display: grid;
   place-items: end center;
@@ -2708,10 +2708,14 @@ body {
   height: auto;
   transition: width 0.6s ease;
 }
-.marker.campfire.level-cold .campfire-flame img { width: 48px; filter: saturate(0.6) brightness(0.92); }
-.marker.campfire.level-mild .campfire-flame img { width: 68px; }
-.marker.campfire.level-warm .campfire-flame img { width: 95px; }
-.marker.campfire.level-hot .campfire-flame img { width: 130px; }
+/* 크기는 지도(.world) 너비 기준(cqw): 화면이 작아져도 광장 모래밭 밖으로 삐져나오지 않게 */
+.world { container-type: inline-size; }
+.marker.campfire.level-cold .campfire-flame img { width: 3.4cqw; filter: saturate(0.6) brightness(0.92); }
+.marker.campfire.level-mild .campfire-flame img { width: 4.6cqw; }
+.marker.campfire.level-warm .campfire-flame img { width: 6.1cqw; }
+.marker.campfire.level-hot .campfire-flame img { width: 7.5cqw; }
+/* 온도 표시는 불 아래쪽에 겹쳐 둠: 불이 커져도 표시가 아래로 밀려 말풍선과 겹치지 않고, 불 중심이 광장 가운데에 옴 */
+.marker.campfire .campfire-temp { position: absolute; left: 50%; bottom: -4px; transform: translateX(-50%); white-space: nowrap; }
 .marker.campfire.level-cold .campfire-flame { opacity: 0.85; filter: none; }
 .marker.campfire.level-hot .campfire-flame { filter: drop-shadow(0 0 18px rgba(255, 110, 30, 0.75)); }
 
