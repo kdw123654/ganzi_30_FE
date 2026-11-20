@@ -2940,3 +2940,26 @@ body {
 #personal .title-card.locked .title-icon.has-img::after {
   content: "🔒"; position: absolute; right: -4px; bottom: -2px; font-size: 14px; line-height: 1;
 }
+
+/* 지도 이름표 칭호 아이콘: 캐릭터에 마우스를 올려도 아이콘 뒤에 흰 상자가 생기지 않게
+   (village.css의 .marker:hover span { background: white } 를 칭호 배지에서는 끔) */
+.marker:hover .title-badge.compact,
+.marker:focus-visible .title-badge.compact,
+.marker:hover .title-badge span,
+.marker:focus-visible .title-badge span { background: transparent; }
+.marker:hover .title-badge.tier-1 { background: #eef5ea; }
+.marker:hover .title-badge.tier-2 { background: #fff1e4; }
+.marker:hover .title-badge.tier-3:not(.compact) { background: linear-gradient(120deg, #3a8f7a, #57b39a 45%, #2f7d6b); }
+.marker:hover .title-badge.tier-4:not(.compact) { background: linear-gradient(120deg, #b7791f, #f2c14e 40%, #e08a1e 70%, #b7791f); }
+.marker:hover .title-badge.compact.tier-1,
+.marker:hover .title-badge.compact.tier-2 { background: transparent; }
+
+/* 검색 중 지도 안내: 닮은 고민을 쓴 이웃만 보여 주는 중 */
+.search-map-note {
+  position: absolute; left: 50%; bottom: 72px; z-index: 30; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 10px; max-width: calc(100% - 32px);
+  padding: 8px 8px 8px 16px; border-radius: 999px;
+  background: #fffdf4f2; color: #24412f; font-size: 13px; box-shadow: 0 4px 14px #18362b33;
+}
+.search-map-note span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.search-map-note button { flex: none; min-height: 30px; padding: 4px 12px; font-size: 12.5px; }

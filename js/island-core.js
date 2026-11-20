@@ -329,6 +329,9 @@ async function renderFeed() {
 
     recentWorryIds = new Set(posts.slice(0, 3).map(post => post.id));
 
+    // 지도도 검색 결과에 맞춰: 닮은 고민을 쓴 이웃만 남김 (결과가 없으면 지도는 그대로)
+    setSearchMatch(query && !fallback ? posts : null, query);
+
     el("count").textContent =
       (query ? "비슷한 고민 " : activeFilters()
         ? "조건에 맞는 고민 "
@@ -373,6 +376,7 @@ async function renderFeed() {
   } catch (error) {
     if (requestId !== feedRequestId) return;
 
+    setSearchMatch(null);
     el("count").textContent = "고민을 불러오지 못했어요.";
     el("feed").textContent = error.message;
   }
@@ -402,6 +406,9 @@ let resonance = new Map(); // user_id → similarity 내 고민과 공명하는 
 let resonancePosts = new Map(); // user_id → 그 이웃의 고민 중 내 고민과 가장 닮은 글 id ('🔥 공명'을 누르면 엶)
 let presenceEnabled = true;
 let islandTemp = null;
+// 검색(내 고민과 닮은 이야기 찾기) 중이면: user_id → 그 이웃의 닮은 고민. 지도에는 이 이웃들만 보여 줌 (null = 모두)
+let searchMatch = null;
+let searchMatchQuery = "";
 
 const shortTitle = (title, max = 14) =>
   title.length > max ? title.slice(0, max) + "…" : title;
@@ -431,6 +438,7 @@ async function loadNeighbors() {
     const firstLoad = !serverNeighbors.length;
     serverNeighbors = await api(`/islands/${islandId}/neighbors`);
     updateIslandCounts();
+    renderSearchNote();
     renderMarkers();
     if (firstLoad) followPlayer(); // 처음 들어오면 내 캐릭터가 보이는 곳에서 시작 (좁은 휴대폰 화면)
     loadResonance();
@@ -491,9 +499,43 @@ const characterImg = (author, alt = "") => `
   <img class="${toneClass(author.color)}"
     src="${img(CHARACTER_KEYS.indexOf(author.character))}" alt="${alt}">`;
 
+// 검색 결과 → 지도 필터. 같은 이웃의 글이 여러 개면 가장 닮은(앞쪽) 글 하나를 말풍선으로
+function setSearchMatch(posts, query = "") {
+  const next = posts
+    ? new Map(posts.filter(p => p.author?.user_id && p.author.user_id !== me.id).reverse()
+        .map(p => [p.author.user_id, p]))
+    : null;
+  searchMatch = next;
+  searchMatchQuery = next ? query : "";
+  renderSearchNote();
+  renderMarkers();
+}
+
+// 지도 위 안내: "'퇴사'와 닮은 고민을 쓴 이웃 N명만 보여요 · 모두 보기"
+function renderSearchNote() {
+  let note = el("searchMapNote");
+  if (!searchMatch) {
+    note?.remove();
+    return;
+  }
+  if (!note) {
+    note = document.createElement("div");
+    note.id = "searchMapNote";
+    note.className = "search-map-note";
+    note.setAttribute("role", "status");
+    el("map").append(note);
+  }
+  const shown = serverNeighbors.filter(n => !n.is_me && searchMatch.has(n.author.user_id)).length;
+  const word = shortTitle(searchMatchQuery, 12);
+  note.innerHTML = `
+    <span>🔍 <b>${escapeText(word)}</b>${hasFinal(word) ? "과" : "와"} 닮은 고민을 쓴 이웃 ${shown}명만 보여요</span>
+    <button type="button" id="searchMapAll">모두 보기</button>`;
+  el("searchMapAll").onclick = () => el("reset").click();
+}
+
 function renderMarkers() {
   const mine = serverNeighbors.find(neighbor => neighbor.is_me);
-  const others = serverNeighbors.filter(neighbor => !neighbor.is_me);
+  const others = serverNeighbors.filter(neighbor => !neighbor.is_me && (!searchMatch || searchMatch.has(neighbor.author.user_id)));
   const items = [...bottleItem(), ...keeperItem()];
 
   // 섬 중앙 모닥불 (섬 온도)
@@ -537,10 +579,12 @@ function renderMarkers() {
     const similarity = resonance.get(id);
     const anchor = postSpot(neighbor);
     const away = Boolean(live || similarity);
-    const latest = neighbor.latest_post;
+    const matched = searchMatch?.get(id);
+    const latest = matched ? { id: matched.id, title: matched.title } : neighbor.latest_post;
     // 서버가 내용이 닮은 고민끼리 묶어 줌 → 대표 글 자리에만 말풍선 하나("+N"), 나머지는 그리지 않음
-    const merged = Boolean(latest?.bubble && latest.bubble !== latest.id);
-    const groupSize = latest?.bubble === latest?.id ? latest.bubble_size || 1 : 1;
+    // (검색 중에는 찾은 고민을 하나씩 보여 주므로 묶지 않음)
+    const merged = !matched && Boolean(latest?.bubble && latest.bubble !== latest.id);
+    const groupSize = !matched && latest?.bubble === latest?.id ? latest.bubble_size || 1 : 1;
     placed.add(id);
     if (merged && !away) continue;
 
@@ -578,9 +622,9 @@ function renderMarkers() {
     }
   }
 
-  // 글은 없지만 지금 섬을 돌아다니는 사람
+  // 글은 없지만 지금 섬을 돌아다니는 사람 (검색 중에는 숨김)
   for (const [id, live] of onlineNeighbors) {
-    if (placed.has(id)) continue;
+    if (placed.has(id) || searchMatch) continue;
     items.push({
       key: "who-" + id,
       ...insideIsland(live),
@@ -978,7 +1022,6 @@ async function openKeeper() {
           ${stat(w.posts, "나눈 고민")}
           ${stat(w.comforts, "이웃의 위로")}
           ${stat(w.ai_comforts, "온도의 위로")}
-          ${stat(w.thanks, "받은 고마움")}
           ${stat(w.visitors, "다녀간 이웃")}
         </div>
         ${w.top_topic ? `<p class="keeper-note">이번 주에 가장 많이 나눈 고민은 <b>${escapeText(w.top_topic)}</b>${copula(w.top_topic)}.</p>` : ""}
@@ -1391,7 +1434,6 @@ function renderComment(comment, post, child = false) {
     : img(CHARACTER_KEYS.indexOf(comment.author?.character));
   const canReport = !comment.is_mine && !comment.is_ai;
   const canDelete = comment.is_mine && !comment.is_ai;
-  const canThank = post.is_mine && !comment.is_ai && !comment.is_mine;
   const canReply = post.visibility === "public";
 
   return `
@@ -1404,7 +1446,6 @@ function renderComment(comment, post, child = false) {
       </div>
       <p>${escapeText(comment.content)}</p>
       <div class="reply-actions">
-        ${canThank ? `<button type="button" class="link-btn thank-btn" data-thank-comment="${comment.id}" aria-pressed="${comment.thanked}">${comment.thanked ? "♥ 고마워요" : "♡ 고마워요"}</button>` : ""}
         ${canReply ? `<button type="button" class="link-btn" data-reply-to="${comment.id}">답글</button>` : ""}
         ${canReport ? `<button type="button" class="link-btn quiet" data-report-comment="${comment.id}">신고</button>` : ""}
         ${canDelete ? `<button type="button" class="link-btn quiet" data-delete-comment="${comment.id}">삭제</button>` : ""}
@@ -1729,24 +1770,6 @@ async function showPost(id, open = true) {
           await showPost(post.id, false);
           await renderFeed();
           toast("댓글을 삭제했어요.");
-        } catch (error) {
-          alert(error.message);
-        } finally {
-          button.disabled = false;
-        }
-      };
-    });
-
-    body.querySelectorAll("[data-thank-comment]").forEach(button => {
-      button.onclick = async () => {
-        button.disabled = true;
-        try {
-          const result = await api(
-            `/posts/${post.id}/comments/${button.dataset.thankComment}/thanks`,
-            { method: "POST" }
-          );
-          button.setAttribute("aria-pressed", String(result.thanked));
-          button.textContent = result.thanked ? "♥ 고마워요" : "♡ 고마워요";
         } catch (error) {
           alert(error.message);
         } finally {
@@ -2335,8 +2358,8 @@ async function loadMySummary() {
   try {
     const s = await api("/users/me/summary");
     if (el("mySummary") !== box) return;
-    box.textContent = `작성한 글 ${s.post_count}개 · 받은 고마움 ${s.thanks_received}번`;
-    box.title = "받은 고마움: 내 고민에 남긴 위로에 작성자가 '고마워요'를 누른 횟수";
+    box.textContent = `작성한 글 ${s.post_count}개 · 건넨 위로 ${s.comment_count}번`;
+    box.title = "건넨 위로: 이웃의 고민에 남긴 댓글 수";
   } catch (error) {
     if (el("mySummary") === box) box.textContent = "활동 요약을 불러오지 못했어요.";
   }
